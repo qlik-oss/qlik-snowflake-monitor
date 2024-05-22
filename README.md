@@ -3,7 +3,7 @@
 > Qlik Support for help with these apps. See below for additional information
 > on how to raise issues on this repository to ask for help.
 
-# Snowflake Monitoring Application
+# Qlik Snowflake Monitor Application
 
 Leveraging Qlik Sense, this app uncovers invaluable insights about your Snowflake costs, usage, inventory, security, performance and contract utilization.
 
