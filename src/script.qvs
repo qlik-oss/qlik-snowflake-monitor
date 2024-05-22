@@ -1,0 +1,3173 @@
+///$tab ==NOTES & CONFIG==
+
+///$tab NOTES
+/*
+
+
+#What is the tenant is new or very low queries over long space of time.
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/
+///$tab VARIABLES
+/*
+
+
+
+
+
+*/
+
+
+SET ThousandSep=',';
+SET DecimalSep='.';
+SET MoneyThousandSep=',';
+SET MoneyDecimalSep='.';
+SET MoneyFormat='$#,##0.00;-$#,##0.00';
+SET TimeFormat='hh:mm:ss';
+SET DateFormat='YYYY-MM-DD';
+SET TimestampFormat='DD-MM-YYYY hh:mm:ss[.fff]';
+SET FirstWeekDay=0;
+SET BrokenWeeks=0;
+SET ReferenceDay=4;
+SET FirstMonthOfYear=1;
+SET CollationLocale='en-GB';
+SET CreateSearchIndexOnReload=1;
+SET MonthNames='Jan;Feb;Mar;Apr;May;Jun;Jul;Aug;Sep;Oct;Nov;Dec';
+SET LongMonthNames='January;February;March;April;May;June;July;August;September;October;November;December';
+SET DayNames='Mon;Tue;Wed;Thu;Fri;Sat;Sun';
+SET LongDayNames='Monday;Tuesday;Wednesday;Thursday;Friday;Saturday;Sunday';
+SET NumericalAbbreviation='3:K;6:M;9:B;12:T;15:P;18:E;21:Z;24:Y;-3:x10^-3;-6:μ;-9:n;-12:p;-15:f;-18:a;-21:z;-24:y';
+
+
+
+
+///$tab CONFIGURATION
+/*
+
+This is currently hardcode in however its planned to have thus stored by an App automation
+
+
+
+
+
+*/
+//----> Connection
+SET CONFIG.APP.SNOWFLAKECONNECTION = ':SNOWFLAKE_MONITORING_DATA';
+SET CONFIG.APP.VERSION = 'v1.0.0';
+SET CONFIG.APP.NAME = 'Qlik Snowflake Monitor';
+SET CONFIG.APP.REST_CONNECTION = ':REST Monitoring Versioning API';
+
+
+
+//-- DO WE WANT TO INCLUDE DELETED OBJECTS? (1/0)
+SET vL.DELETED_OBJECTS = 0;
+
+IF $(vL.DELETED_OBJECTS) = 0 THEN
+	
+    SET vL.DELETED_OBJECT_SCRIPT = 'WHERE DELETED IS NULL';
+
+ELSE
+	SET vL.DELETED_OBJECT_SCRIPT = '';
+    
+END;
+
+
+
+//----> HOW MUCH QUERY HISTORY DO WE WANT?
+LET vL.MAX_QUERY_HISTORY_ROWS = 500000;
+
+
+LET vL.QUERY_HIST_BOUNDARY_CONTROL = ' ' & '$1' & '> DATEADD($2, $3, CURRENT_DATE())';
+
+
+SUB SET_QVD_STORE_VARIABLES
+/*QVD Store Period*/
+  LET CONFIG.QUERY_RETENTION_PERIOD_DAYS 						= $(vL.QUERY_HIST_LENGTH);
+  LET CONFIG.WAREHOUSE_RETENTION_PERIOD_DAYS 					= $(vL.QUERY_HIST_LENGTH); 
+  LET CONFIG.NEW_RUN_START_DATE_MAPPING							= TODAY(1) - ($(CONFIG.QUERY_RETENTION_PERIOD_DAYS) - 1); //DO NOT EDIT: We need one days more mapping to ensure we get a 100% JOIN 
+  LET CONFIG.NEW_RUN_START_DATE									= TODAY(1) - 365; 
+
+  /*QVD STORE LOCATIONS*/
+ LET CONFIG.QVD_STORE.VERSION.EVENT_QUERY_CORE 					= 'v.1.0.0';
+ LET CONFIG.QVD_STORE.VERSION.EVENT_QUERY 						= 'v.1.0.0';
+ LET CONFIG.QVD_STORE.VERSION.EVENT_WAREHOUSE_CORE 				= 'v.1.0.0';
+ LET CONFIG.QVD_STORE.VERSION.EVENT_WAREHOUSE 					= 'v.1.0.0';
+ LET CONFIG.QVD_STORE.VERSION.DAILY_COST_AGGR 					= 'v.1.0.0';
+ LET CONFIG.QVD_STORE.VERSION.MAPPING_WAREHOUSE_QUERY_SESSIONS 	= 'v.1.0.0';
+ 
+  LET CONFIG.QVD_STORE.EVENT_QUERY_CORE  						= 'lib://:DataFiles/SNOWFLAKE/EVENTS_QUERY_CORE_$(CONFIG.QVD_STORE.VERSION.EVENT_QUERY_CORE).QVD';
+  LET CONFIG.QVD_STORE.EVENT_QUERY  							= 'lib://:DataFiles/SNOWFLAKE/EVENTS_QUERY_$(CONFIG.QVD_STORE.VERSION.EVENT_QUERY).QVD';
+  LET CONFIG.QVD_STORE.EVENT_WAREHOUSE_CORE  					= 'lib://:DataFiles/SNOWFLAKE/EVENTS_WAREHOUSE_CORE_$(CONFIG.QVD_STORE.VERSION.EVENT_WAREHOUSE_CORE).QVD';
+  LET CONFIG.QVD_STORE.EVENT_WAREHOUSE  						= 'lib://:DataFiles/SNOWFLAKE/EVENTS_WAREHOUSE_$(CONFIG.QVD_STORE.VERSION.EVENT_WAREHOUSE).QVD';
+  LET CONFIG.QVD_STORE.DAILY_COST_AGGR  						= 'lib://:DataFiles/SNOWFLAKE/DAILY_COST_AGGR_$(CONFIG.QVD_STORE.VERSION.DAILY_COST_AGGR).QVD';
+  LET CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS 		= 'lib://:DataFiles/SNOWFLAKE/MAPPING_WAREHOUSE_QUERY_SESSIONS_$(CONFIG.QVD_STORE.VERSION.MAPPING_WAREHOUSE_QUERY_SESSIONS).QVD';
+END SUB;
+
+
+
+
+///$tab ==SUBROUTINES==
+
+///$tab CHECK_VERSIOING
+SUB CHECK_VERSIOING
+
+    // check to see whether the app is the latest version
+
+    LIB Connect To '$(CONFIG.APP.REST_CONNECTION)';
+
+    RestConnectorMasterTable:
+        SQL SELECT 
+        "id",
+        "name",
+        "version",
+        "source"
+    FROM JSON (wrap on) "root"
+	WITH CONNECTION (  
+        URL "https://raw.githubusercontent.com/ometisltd/qaa_generic_app_installer_snowflake/main/manifest.json",
+        HTTPHEADER "Authorization" ""
+    );
+
+    [Version]:
+    LOAD [version]
+    RESIDENT RestConnectorMasterTable
+    Where name='$(CONFIG.APP.NAME)';
+    
+    DROP TABLE RestConnectorMasterTable;
+	
+    //Select the version from the manifest
+    Let vLatestVersion = Peek('version',0,'Version');
+    
+    //Check against the version of this app, if they do not match, we have an 'upgrade' as we do not go backwards in versioning.
+    Let vIsLatestVersion = If('$(vLatestVersion)'='$(CONFIG.APP.VERSION)',1,0);
+
+    Drop Table Version;
+
+END SUB;
+
+
+
+///$tab CREATE MAPS
+/*
+
+	The following SUBs are called once we have loaded the resident tables
+    They create a mapping from names to an ID so we can have continuity across other
+    loaded data sets within this application.
+    
+*/
+
+SUB CREATE_INVENTORY_MAPS
+
+    DATABASE_NAME_TO_ID_MAP:MAPPING LOAD DISTINCT DATABASE_NAME AS GRANT_ON_DATABASE , DATABASE_ID RESIDENT [DATABASES]; 
+
+    SCHEMA_NAME_TO_ID_MAP:MAPPING LOAD DISTINCT  CATALOG_NAME & '.' & SCHEMA_NAME AS DATABASE_SCHEMA_NAME, SCHEMA_ID RESIDENT [SCHEMAS]; 
+
+    TABLE_NAME_TO_ID_MAP:MAPPING LOAD DISTINCT TABLE_CATALOG & '.' & TABLE_SCHEMA & '.' & TABLE_NAME AS DATABASE_SCHEMA_TABLE_NAME, TABLE_ID RESIDENT [TABLES]; 
+
+END SUB 
+
+
+SUB CREATE_USER_ID_MAP
+
+	USER_NAME_TO_ID_MAP: MAPPING LOAD DISTINCT USER_NAME, USER_ID RESIDENT USERS;
+
+END SUB
+
+
+
+SUB CREATE_ROLE_ID_MAP
+
+	ROLE_NAME_TO_ID_MAP: MAPPING LOAD DISTINCT ROLE_NAME, ROLE_ID RESIDENT ROLES;
+
+END SUB
+
+
+
+
+SUB CREATE_WAREHOUSE_SIZE_MAP	
+
+	WAREHOUSE_SIZE_MAPPING_LOAD:
+    MAPPING LOAD * INLINE [
+    WAREHOUSE_SIZE, ORDER
+    X-Small,		1
+    Small,			2
+    Medium,			3
+    Large,			4
+    X-Large,		5	
+    2X-Large,		6	
+    3X-Large,		7
+    4X-Large,		8
+    5X-Large,		9
+    6X-Large,		10
+    ];
+
+    
+END SUB
+///$tab SIZING TENANT
+/*
+CREATING A PROXY FOR ENV SIZE
+
+*/
+
+
+SUB SIZING_ENVIRONMENT
+  
+  TRACE '=============================';
+  TRACE '[SIZING_ENVIRONMENT]  STARTED';
+
+	
+	QUERY_HISTORY_COUNT:
+      SELECT
+          COUNT(*) AS ROW_COUNT_FULL,
+          MIN(START_TIME) AS MIN_DATE
+      FROM 
+          SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+      ;
+
+      LEFT JOIN (QUERY_HISTORY_COUNT)
+      Select
+          COUNT(*) AS ROW_COUNT_30
+      FROM 
+          SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+      WHERE 
+          START_TIME > DATEADD(DAY, -30, CURRENT_DATE())
+      ;
+
+
+      LEFT JOIN (QUERY_HISTORY_COUNT)
+      Select
+          COUNT(*) AS ROW_COUNT_14
+      FROM 
+          SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+      WHERE 
+          START_TIME > DATEADD(DAY, -14, CURRENT_DATE())
+      ;
+
+      LET v.QH_ROWCOUNT = PEEK('ROW_COUNT_FULL',0,'QUERY_HISTORY_COUNT');
+      LET v.QH_ROWCOUNT_30 = PEEK('ROW_COUNT_30',0,'QUERY_HISTORY_COUNT');
+      LET v.QH_ROWCOUNT_14 = PEEK('ROW_COUNT_14',0,'QUERY_HISTORY_COUNT');
+
+      TRACE ROW COUNT==> FULL --> $(v.QH_ROWCOUNT) ----> 30 $(v.QH_ROWCOUNT_30) ----> 14 $(v.QH_ROWCOUNT_14) ;
+
+
+      IF $(v.QH_ROWCOUNT) < $(vL.MAX_QUERY_HISTORY_ROWS) THEN 
+
+          LET vL.QUERY_HIST_BOUNDARY = '1=1';
+          LET vL.QUERY_HIST_LENGTH = TODAY() - FLOOR(TIMESTAMP(PEEK('MIN_DATE',0,'QUERY_HISTORY_COUNT'), 'DD-MM-YYYY hh:mm:ss')) ;
+
+      ELSEIF $(v.QH_ROWCOUNT_30) < $(vL.MAX_QUERY_HISTORY_ROWS) THEN 
+
+          LET vL.QUERY_HIST_BOUNDARY = ' ' & '$1' & '> DATEADD(DAY, -30, CURRENT_DATE())';
+          LET vL.QUERY_HIST_LENGTH = 30;
+
+      ELSEIF $(v.QH_ROWCOUNT_14) < $(vL.MAX_QUERY_HISTORY_ROWS) THEN 
+
+          LET vL.QUERY_HIST_BOUNDARY = ' ' & '$1' & '> DATEADD(DAY, -14, CURRENT_DATE())';
+          LET vL.QUERY_HIST_LENGTH = 14;
+
+      ELSE 
+
+          LET vL.QUERY_HIST_BOUNDARY = ' ' & '$1' & '> DATEADD(DAY, -7, CURRENT_DATE())';
+          LET vL.QUERY_HIST_LENGTH = 7;
+
+      END IF
+
+      DROP TABLE QUERY_HISTORY_COUNT;
+
+    TRACE '[SIZING_ENVIRONMENT]  FINISHED';
+	TRACE '=============================';
+END SUB
+///$tab GETWAREHOUSESESSIONS(DAY)
+/*
+
+	An Input of 'DAY' is required formatted as TEXT 'YYYY-MM-DD' 
+    This will fetch all the queries for that day and assosiated Warehouse sessions.
+
+
+*/
+
+Sub GetWarehouseSessions(DAY)
+
+TRACE $(DAY);
+
+[WAREHOUSE_QUERY_MAP]:
+SELECT * FROM (
+  WITH WAREHOUSE_EVENTS_BASE AS (
+      SELECT
+              TIMESTAMP AS START_EVENT_DATETIME
+          ,   WAREHOUSE_ID
+          ,   CASE 
+                  WHEN EVENT_NAME = 'RESUME_WAREHOUSE'  AND EVENT_STATE = 'STARTED' THEN 'START'
+                  WHEN EVENT_NAME = 'SUSPEND_WAREHOUSE' AND EVENT_STATE = 'COMPLETED' THEN 'END'
+                  END AS "EVENT"
+          , LAG(TIMESTAMP,-1) OVER (PARTITION BY WAREHOUSE_ID ORDER BY TIMESTAMP ASC)  AS END_EVENT_DATETIME
+          , LAG(TIMESTAMP,-2) OVER (PARTITION BY WAREHOUSE_ID ORDER BY TIMESTAMP ASC) AS NEXT_EVENT_DATETIME
+      FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_EVENTS_HISTORY
+      WHERE 1=1
+          --AND TIME FILTER
+
+          AND (
+                  (EVENT_NAME = 'RESUME_WAREHOUSE'  AND EVENT_STATE = 'STARTED')
+                  OR
+                  (EVENT_NAME = 'SUSPEND_WAREHOUSE' AND EVENT_STATE = 'COMPLETED')
+              )
+      ORDER BY TIMESTAMP ASC
+  ),
+  WAREHOUSE_EVENTS_CORE AS (
+      SELECT 
+              WAREHOUSE_ID                                                AS "%KEY_WAREHOUSE"
+          ,   START_EVENT_DATETIME
+          ,   END_EVENT_DATETIME
+          ,   NEXT_EVENT_DATETIME   
+          ,   DATEDIFF('SECONDS',START_EVENT_DATETIME,END_EVENT_DATETIME) AS RUN_TIME
+          ,   DATEDIFF('SECONDS',END_EVENT_DATETIME,NEXT_EVENT_DATETIME)  AS TIME_TO_NEXT_SPIN_UP
+          ,   WAREHOUSE_ID || '-' || START_EVENT_DATETIME                 AS "%KEY_WAREHOUSE_SESSION"
+      FROM WAREHOUSE_EVENTS_BASE
+      WHERE 1=1
+          AND ( 
+                  //(EVENT = 'START' AND DATE_TRUNC('DAY',START_EVENT_DATETIME) > DATE('2022-01-01')) -- The date here needs to be the current MAX date we have stored.
+                  (EVENT = 'START' AND DATE_TRUNC('DAY',START_EVENT_DATETIME) BETWEEN DATE('$(DAY)')-1 AND DATE('$(DAY)')+1) -- The date here needs to be the current MAX date we have stored.
+                  -- (EVENT = 'START' AND START_EVENT_DATETIME > TO_TIMESTAMP('2024-01-08 03:44:02.117 -0800')) -- The date here needs to be the current MAX date we have stored.
+                  OR 
+                  (EVENT = 'START' AND END_EVENT_DATETIME IS NULL)
+                  OR
+                  (EVENT = 'START' AND NEXT_EVENT_DATETIME IS NULL)
+              )
+  ),
+  EVENTS_QUERIES_BASE AS (
+      SELECT
+              QUERY_ID
+          ,   WAREHOUSE_ID    AS "%KEY_WAREHOUSE"
+          ,   SESSION_ID
+          ,   START_TIME  AS QUERY_START_TIME
+          ,   END_TIME    AS QUERY_END_TIME
+          ,   LAG(START_TIME,-1) OVER (ORDER BY START_TIME ASC) AS NEXT_QUERY_START_TIME --Do we need this? Is this right?
+          ,   LAG(START_TIME,-1) OVER (PARTITION BY WAREHOUSE_ID ORDER BY START_TIME ASC) AS NEXT_QUERY_START_TIME_IN_WAREHOUSE
+          ,   CREDITS_USED_CLOUD_SERVICES
+      FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+      WHERE 1=1
+          AND DATE_TRUNC('DAY',START_TIME) = DATE('$(DAY)')
+          AND WAREHOUSE_ID IS NOT NULL //We are only interested in Queries that have a warehouse
+          AND CREDITS_USED_CLOUD_SERVICES > 0 //And used some credits (ie cost something)
+
+  ),
+  EVENTS_QUERY_CORE AS (
+      SELECT 
+              *
+          ,   DATEDIFF('SECONDS',QUERY_END_TIME,NEXT_QUERY_START_TIME_IN_WAREHOUSE) AS TIME_BETWEEN_NEXT_QUERY
+
+
+      FROM EVENTS_QUERIES_BASE
+
+  )
+  SELECT
+
+           QU.QUERY_ID
+      ,    QU.QUERY_END_TIME
+      ,    QU.QUERY_START_TIME
+
+      ,    QU."%KEY_WAREHOUSE"
+      ,    WE."%KEY_WAREHOUSE_SESSION"
+      ,    WE.END_EVENT_DATETIME
+      ,    WE.START_EVENT_DATETIME
+
+  FROM EVENTS_QUERY_CORE QU
+  LEFT JOIN WAREHOUSE_EVENTS_CORE WE
+  ON 
+          QU."%KEY_WAREHOUSE" =  WE."%KEY_WAREHOUSE" --We only want to join to queries on the same Warehouse
+      AND QU.QUERY_START_TIME >= TIMEADD('SECONDS',-5,WE.START_EVENT_DATETIME) --We want to see what queries ran after the warehouse started
+      AND QU.QUERY_END_TIME   <= WE.END_EVENT_DATETIME --and when the warehouse finishes.
+  ORDER BY QUERY_START_TIME ASC
+);
+
+END SUB;
+///$tab GETDAILYAGGR(DAY)
+/*
+
+	An Input of 'DAY' is required formatted as TEXT 'YYYY-MM-DD' 
+    This will fetch the Days query aggrigation and store into the
+    DAILY_AGGR Table
+
+
+*/
+SUB GETDAILYAGGR(DAY)
+
+	TRACE $(DAY);
+	[DAILY_AGGR]:
+  SELECT * FROM (
+      WITH COMPUTE_HOURLY_BREAKDOWN AS (
+          SELECT 
+                  TO_CHAR(START_TIME, 'YYYY-MM-DD') AS WAREHOUSE_DAY
+              ,   START_TIME
+              ,   END_TIME
+              ,   WAREHOUSE_ID                
+              ,   CREDITS_USED
+              ,   CREDITS_USED_COMPUTE
+              ,   CREDITS_USED_CLOUD_SERVICES
+          FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+          WHERE 1=1
+              AND DATE_TRUNC('DAY',START_TIME) = DATE('$(DAY)')
+      ),
+      WAREHOUSE_SESSIONS AS (
+          SELECT 
+                  WAREHOUSE_ID   
+              ,   START_EVENT_DATETIME
+              ,   END_EVENT_DATETIME
+              ,   NEXT_EVENT_DATETIME
+              ,   DATEDIFF('SECONDS',START_EVENT_DATETIME,END_EVENT_DATETIME)                                             AS RUN_TIME
+              ,   DATEDIFF('SECONDS',END_EVENT_DATETIME,NEXT_EVENT_DATETIME)                                              AS TIME_TO_NEXT_SPIN_UP
+              ,   TO_CHAR(END_EVENT_DATETIME, 'YYYY-MM-DD')                                                               AS WAREHOUSE_DAY        
+              ,   WAREHOUSE_ID || '-' || ROW_NUMBER() OVER (PARTITION BY WAREHOUSE_ID ORDER BY END_EVENT_DATETIME ASC)    AS "%KEY_WAREHOUSE_SESSION" --This is the session number Key.
+          FROM (
+              SELECT
+                      TIMESTAMP AS START_EVENT_DATETIME  
+                  ,   WAREHOUSE_ID
+                  ,   CASE 
+                          WHEN EVENT_NAME = 'RESUME_WAREHOUSE'  AND EVENT_STATE = 'STARTED' THEN 'START'
+                          WHEN EVENT_NAME = 'SUSPEND_WAREHOUSE' AND EVENT_STATE = 'COMPLETED' THEN 'END'
+                          END AS "EVENT"
+                  , LAG(TIMESTAMP,-1) OVER (PARTITION BY WAREHOUSE_ID ORDER BY TIMESTAMP ASC)  AS END_EVENT_DATETIME
+                  , LAG(TIMESTAMP,-2) OVER (PARTITION BY WAREHOUSE_ID ORDER BY TIMESTAMP ASC) AS NEXT_EVENT_DATETIME    
+              FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_EVENTS_HISTORY
+              WHERE 1=1
+                  AND (
+                          (EVENT_NAME = 'RESUME_WAREHOUSE'  AND EVENT_STATE = 'STARTED')
+                          OR
+                          (EVENT_NAME = 'SUSPEND_WAREHOUSE' AND EVENT_STATE = 'COMPLETED')
+                      )
+          )
+          WHERE 1=1
+              AND ( 
+                    //(EVENT = 'START' AND DATE_TRUNC('DAY',START_EVENT_DATETIME) > DATE('2022-01-01')) -- The date here needs to be the current MAX date we have stored.
+                    (EVENT = 'START' AND DATE_TRUNC('DAY',START_EVENT_DATETIME) BETWEEN DATE('$(DAY)')-1 AND DATE('$(DAY)')+1) -- The date here needs to be the current MAX date we have stored.
+                    -- (EVENT = 'START' AND START_EVENT_DATETIME > TO_TIMESTAMP('2024-01-08 03:44:02.117 -0800')) -- The date here needs to be the current MAX date we have stored.
+                    OR 
+                    (EVENT = 'START' AND END_EVENT_DATETIME IS NULL)
+                    OR
+                    (EVENT = 'START' AND NEXT_EVENT_DATETIME IS NULL)
+                )
+      ),
+      WAREHOUSE_HOUR_APPORTION AS (
+          SELECT  
+                  COSTS.WAREHOUSE_DAY
+              ,   COSTS.START_TIME
+              ,   COSTS.WAREHOUSE_ID
+              ,   COSTS.CREDITS_USED
+              ,   COSTS.CREDITS_USED_COMPUTE
+              ,   COSTS.CREDITS_USED_CLOUD_SERVICES
+
+              ,   SESSIONS.START_EVENT_DATETIME
+              ,   SESSIONS.END_EVENT_DATETIME
+              ,   SESSIONS.NEXT_EVENT_DATETIME
+              ,   SESSIONS.TIME_TO_NEXT_SPIN_UP
+              ,   SESSIONS.RUN_TIME AS TOTAL_RUN_TIME
+
+              --Case block to split time into 3600 Chunks if we are running more than 1 hour. And leave the remaner in the last hour.
+              ,   CASE
+                      WHEN EXTRACT(HOUR,END_EVENT_DATETIME) = EXTRACT(HOUR,END_TIME) THEN MOD(SESSIONS.RUN_TIME, 3600)
+                      WHEN SESSIONS.RUN_TIME > 3600 THEN 3600 
+                      ELSE SESSIONS.RUN_TIME END AS RUN_TIME_SPLIT 
+
+              ,   SESSIONS."%KEY_WAREHOUSE_SESSION"
+              ,   SESSIONS."%KEY_WAREHOUSE_SESSION" || '-' || COSTS.START_TIME AS "%KEY_WAREHOUSE_SESSION_HOUR"
+
+          FROM COMPUTE_HOURLY_BREAKDOWN COSTS
+          LEFT JOIN WAREHOUSE_SESSIONS SESSIONS 
+              ON  COSTS.WAREHOUSE_ID = SESSIONS.WAREHOUSE_ID
+              AND (
+                          (COSTS.START_TIME <= SESSIONS.END_EVENT_DATETIME AND COSTS.END_TIME >= SESSIONS.START_EVENT_DATETIME)
+                      OR  (COSTS.START_TIME BETWEEN SESSIONS.START_EVENT_DATETIME AND SESSIONS.END_EVENT_DATETIME)
+                      OR  (COSTS.END_TIME   BETWEEN SESSIONS.START_EVENT_DATETIME AND SESSIONS.END_EVENT_DATETIME)
+                  )
+      ),
+      RUN_TIME_AGGR AS (
+          SELECT 
+                  WAREHOUSE_DAY
+              ,   START_TIME
+              ,   WAREHOUSE_ID
+              ,   SUM(RUN_TIME_SPLIT) AS TOTAL_RUN_TIME_IN_HOUR
+
+          FROM WAREHOUSE_HOUR_APPORTION
+          GROUP BY  
+                  WAREHOUSE_DAY
+              ,   START_TIME
+              ,   WAREHOUSE_ID
+      ),
+      QUERY_SLIM AS (
+          SELECT
+                  QUERY.QUERY_ID
+              ,   QUERY.WAREHOUSE_ID
+              ,   QUERY.START_TIME
+              ,   QUERY.END_TIME
+              ,   QUERY.CREDITS_USED_CLOUD_SERVICES
+              ,   QUERY.TOTAL_ELAPSED_TIME
+              ,   WH."%KEY_WAREHOUSE_SESSION"
+              ,   WH."%KEY_WAREHOUSE_SESSION_HOUR"
+
+              --Extra info to pivot
+              ,   QUERY.DATABASE_ID
+              ,   QUERY.WAREHOUSE_NAME
+              ,   QUERY.ROLE_NAME
+              ,   QUERY.USER_NAME
+              ,   TO_VARIANT(PARSE_JSON(SESSIONS.CLIENT_ENVIRONMENT)):APPLICATION AS APPLICATION
+          FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY QUERY
+          LEFT JOIN SNOWFLAKE.ACCOUNT_USAGE.SESSIONS SESSIONS ON QUERY.SESSION_ID = SESSIONS.SESSION_ID
+          LEFT JOIN WAREHOUSE_HOUR_APPORTION WH ON 
+                  QUERY.WAREHOUSE_ID = WH.WAREHOUSE_ID 
+              AND QUERY.START_TIME >= TIMEADD(SECONDS,-5,WH.START_EVENT_DATETIME) 
+              AND QUERY.END_TIME <= WH.END_EVENT_DATETIME
+              AND EXTRACT(HOUR,QUERY.START_TIME) = EXTRACT(HOUR,WH.START_TIME)
+          WHERE 1=1
+              AND QUERY.WAREHOUSE_ID IS NOT NULL
+              AND QUERY.CREDITS_USED_CLOUD_SERVICES > 0
+              //AND   "QUERY"."START_TIME"> DATEADD('MONTH', -6, CURRENT_DATE())
+              AND DATE_TRUNC('DAY',QUERY.START_TIME) = DATE('$(DAY)')
+      ),
+      QUERIES_OUT AS (
+          SELECT  
+                  Q.*
+              ,   AGGR.TOTAL_QUERRY_RUN_TIME
+              ,   Q.TOTAL_ELAPSED_TIME / NULLIF(AGGR.TOTAL_QUERRY_RUN_TIME, 0) AS QUERY_COST_SHARE
+          FROM QUERY_SLIM Q
+          LEFT JOIN ( /**Get the total run time of queries in each session hour */
+              SELECT 
+                      "%KEY_WAREHOUSE_SESSION_HOUR"
+                  ,   SUM(TOTAL_ELAPSED_TIME) AS TOTAL_QUERRY_RUN_TIME
+              FROM QUERY_SLIM
+              GROUP BY "%KEY_WAREHOUSE_SESSION_HOUR"
+          ) AGGR ON AGGR."%KEY_WAREHOUSE_SESSION_HOUR" = Q."%KEY_WAREHOUSE_SESSION_HOUR"
+      ),
+      FINAL_COST_OUT AS (
+          SELECT 
+                  Q_O.QUERY_ID
+              ,   APPOR.WAREHOUSE_DAY AS BILLING_DAY
+              ,   APPOR."%KEY_WAREHOUSE_SESSION"
+              ,   APPOR."%KEY_WAREHOUSE_SESSION_HOUR"
+              ,   APPOR.START_TIME AS BILLING_HOUR_START
+              ,   Q_O.WAREHOUSE_ID
+              ,   Q_O.WAREHOUSE_NAME
+              ,   Q_O.DATABASE_ID
+              ,   Q_O.ROLE_NAME
+              ,   Q_O.USER_NAME
+              ,   Q_O.APPLICATION  
+              ,   Q_O.START_TIME
+              ,   Q_O.END_TIME
+              ,   Q_O.TOTAL_ELAPSED_TIME
+              ,   Q_O.QUERY_COST_SHARE
+              ,   APPOR.RUN_TIME_SPLIT / NULLIF(TOT.TOTAL_RUN_TIME_IN_HOUR, 0)                                           AS WAREHOUSE_SHARE_PERC
+              ,   CREDITS_USED                                                                                            AS TOTAL_CREDITS_HOUR
+              ,   CREDITS_USED * (APPOR.RUN_TIME_SPLIT / NULLIF(TOT.TOTAL_RUN_TIME_IN_HOUR, 0))                          AS WAREHOUSE_SESSION_CREDIT_COST
+              ,   CREDITS_USED * (APPOR.RUN_TIME_SPLIT / NULLIF(TOT.TOTAL_RUN_TIME_IN_HOUR, 0)) * Q_O.QUERY_COST_SHARE   AS QUERY_CREDIT_COST
+          FROM WAREHOUSE_HOUR_APPORTION APPOR
+          LEFT JOIN RUN_TIME_AGGR TOT ON TOT.WAREHOUSE_DAY = APPOR.WAREHOUSE_DAY AND TOT.START_TIME = APPOR.START_TIME AND TOT.WAREHOUSE_ID = APPOR.WAREHOUSE_ID
+          LEFT JOIN QUERIES_OUT Q_O ON Q_O."%KEY_WAREHOUSE_SESSION_HOUR" = APPOR."%KEY_WAREHOUSE_SESSION_HOUR"
+      )
+      SELECT 
+              WAREHOUSE_ID
+          ,   WAREHOUSE_NAME
+          ,   DATABASE_ID
+          ,   ROLE_NAME
+          ,   USER_NAME
+          ,   APPLICATION
+          ,   BILLING_DAY
+          ,   SUM(NVL(QUERY_CREDIT_COST,NVL(WAREHOUSE_SESSION_CREDIT_COST,TOTAL_CREDITS_HOUR))) AS TOTAL_COSTS
+          ,   COUNT(QUERY_ID)         AS TOTAL_QUERIES
+      FROM FINAL_COST_OUT
+      GROUP BY
+              WAREHOUSE_ID
+          ,   WAREHOUSE_NAME
+          ,   DATABASE_ID
+          ,   ROLE_NAME
+          ,   USER_NAME
+          ,   APPLICATION
+          ,   BILLING_DAY
+  )
+      ;
+
+END SUB;
+///$tab ==QVD BUILDING==
+
+///$tab QVD - EVENTS_QUERY_CORE
+/*
+
+	We check to see if the Store location for EVENTS_QUERY_CORE is already created or not
+    If not we generate the last X days worth stored in the CONFIG.QUERY_RETENTION_PERIOD_DAYS variable.
+    If we have a QVD it will get any queries stored in snowflake up to NOW() and remove any older than the 
+    CONFIG.QUERY_RETENTION_PERIOD_DAYS. 
+
+*/
+SUB EVENTS_QUERY_CORE
+  TRACE '=============================';
+  TRACE '[EVENTS_QUERY_CORE] Building QVD STARTED';
+  //Check if we have the QVD or NOT
+  IF(ISNULL(QvdCreateTime('$(CONFIG.QVD_STORE.EVENT_QUERY_CORE)'))) THEN
+  	//If we DONT have the Stright load the amount required of days required per the config.
+    TRACE '[EVENTS_QUERY_CORE] New QVD Load';
+    [EVENTS_QUERY_CORE]:
+        SELECT * FROM (
+            WITH EVENTS_QUERY_BASE AS (
+                SELECT
+                                            QUERY_ID 			AS "%KEY_QUERY"
+                    ,	WAREHOUSE_ID 		AS "%KEY_WAREHOUSE"
+                    ,	START_TIME			AS QUERY_START_TIME
+                    ,	END_TIME 			AS QUERY_END_TIME
+                    ,	TOTAL_ELAPSED_TIME	AS QUERY_RUN_TIME
+                    ,   LAG(START_TIME,-1) OVER (PARTITION BY WAREHOUSE_ID ORDER BY START_TIME ASC) AS NEXT_QUERY_START_TIME
+
+                    --Add Columns to use in the Qlik app here.
+                    ,	USER_NAME
+                    ,   ROLE_NAME
+                    ,	SESSION_ID
+                    ,	DATABASE_ID
+                    ,	SCHEMA_ID
+                    ,	QUERY_TYPE
+                    ,	EXECUTION_STATUS
+                    ,	CREDITS_USED_CLOUD_SERVICES
+                    ,	QUERY_TAG
+                    
+                    --Warehouse columns
+                    ,	WAREHOUSE_NAME
+                    , 	WAREHOUSE_SIZE
+                    ,	WAREHOUSE_TYPE
+                    
+                    --Performance Columns
+                    ,	BYTES_SPILLED_TO_LOCAL_STORAGE
+                    ,	BYTES_SPILLED_TO_REMOTE_STORAGE
+                    ,	BYTES_SPILLED_TO_LOCAL_STORAGE + BYTES_SPILLED_TO_REMOTE_STORAGE AS TOTAL_BYTES_SPILLED
+                    ,	PERCENTAGE_SCANNED_FROM_CACHE
+
+                FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+                WHERE 1=1
+                    //AND START_TIME >= TO_TIMESTAMP('$(v.last_query_start_event)')
+                    AND START_TIME >= (CURRENT_DATE - $(CONFIG.QUERY_RETENTION_PERIOD_DAYS))
+
+            ),
+            EVENTS_QUERY_CORE AS (
+                SELECT 
+                        *
+                    ,   DATEDIFF('SECONDS',QUERY_END_TIME,NEXT_QUERY_START_TIME) AS TIME_BETWEEN_NEXT_QUERY_SEC
+                FROM EVENTS_QUERY_BASE
+            )
+            SELECT * FROM EVENTS_QUERY_CORE
+        );
+   	STORE [EVENTS_QUERY_CORE] INTO [$(CONFIG.QVD_STORE.EVENT_QUERY_CORE)] (QVD);
+    DROP TABLE [EVENTS_QUERY_CORE];
+    
+  ELSE
+  	//We already have the QVD with data in
+    TRACE '[EVENTS_QUERY_CORE] Append Current QVD';
+    
+    //Find the Most resent Query We have
+    [LAST_END_EVENT]: LOAD TIMESTAMP(MAX(QUERY_START_TIME),'YYYY-MM-DD hh:mm:ss.fff') AS LAST_QUERY_START_TIME FROM [$(CONFIG.QVD_STORE.EVENT_QUERY_CORE)] (QVD);
+  	
+    //Store that date in a variable.
+    LET v.last_query_start_event = PEEK('LAST_QUERY_START_TIME',0,'LAST_END_EVENT');
+    //16/04/2024 - Added check to see if last stored queries are more than the retention period.
+    IF((NUM(NOW()) - NUM(v.last_query_start_event)) > $(CONFIG.QUERY_RETENTION_PERIOD_DAYS)) THEN
+      TRACE LAST RAN OUTSIZE QUERY RETENTION;
+      LET APP.QUERY_PARAM = 'AND START_TIME >= (CURRENT_DATE - ' & $(CONFIG.QUERY_RETENTION_PERIOD_DAYS) &')';
+      
+    ELSE 
+    	TRACE LAST RAN WITHIN QUERY RETENTION;
+    	LET APP.QUERY_PARAM = 'AND START_TIME >= TO_TIMESTAMP(' & '''$(v.last_query_start_event)'''& ')';
+    END IF
+    
+    
+    //Load all the Queries after that date.
+    [EVENTS_QUERY_CORE]:
+        SELECT * FROM (
+            WITH EVENTS_QUERY_BASE AS (
+                SELECT
+                        QUERY_ID 			AS "%KEY_QUERY"
+                    ,	WAREHOUSE_ID 		AS "%KEY_WAREHOUSE"
+                    ,	START_TIME			AS QUERY_START_TIME
+                    ,	END_TIME 			AS QUERY_END_TIME
+                    ,	TOTAL_ELAPSED_TIME	AS QUERY_RUN_TIME
+                    ,   LAG(START_TIME,-1) OVER (PARTITION BY WAREHOUSE_ID ORDER BY START_TIME ASC) AS NEXT_QUERY_START_TIME
+
+                    --Add Columns to use in the Qlik app here.
+                    ,	USER_NAME
+                    ,   ROLE_NAME
+                    ,	SESSION_ID
+                    ,	DATABASE_ID
+                    ,	SCHEMA_ID
+                    ,	QUERY_TYPE
+                    ,	EXECUTION_STATUS
+                    ,	CREDITS_USED_CLOUD_SERVICES
+                    ,	QUERY_TAG
+                    
+                    --Warehouse columns
+                    ,	WAREHOUSE_NAME
+                    , 	WAREHOUSE_SIZE
+                    ,	WAREHOUSE_TYPE
+                    
+                    --Performance Columns
+                    ,	BYTES_SPILLED_TO_LOCAL_STORAGE
+                    ,	BYTES_SPILLED_TO_REMOTE_STORAGE
+                    ,	BYTES_SPILLED_TO_LOCAL_STORAGE + BYTES_SPILLED_TO_REMOTE_STORAGE AS TOTAL_BYTES_SPILLED
+                    ,	PERCENTAGE_SCANNED_FROM_CACHE
+
+                FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+                WHERE 1=1
+                    $(APP.QUERY_PARAM)
+                    //AND START_TIME >= TO_TIMESTAMP('$(v.last_query_start_event)')
+
+            ),
+            EVENTS_QUERY_CORE AS (
+                SELECT 
+                        *
+                    ,   DATEDIFF('SECONDS',QUERY_END_TIME,NEXT_QUERY_START_TIME) AS TIME_BETWEEN_NEXT_QUERY_SEC
+                FROM EVENTS_QUERY_BASE
+            )
+            SELECT * FROM EVENTS_QUERY_CORE
+        );
+    //Load all the current queries we have stored after our retention period    
+    [EVENTS_QUERY_CORE]:LOAD * FROM [$(CONFIG.QVD_STORE.EVENT_QUERY_CORE)] (QVD)
+    WHERE FLOOR(NUM(QUERY_START_TIME)) >= NUM(TODAY(1) - $(CONFIG.QUERY_RETENTION_PERIOD_DAYS) )
+    ;
+    
+    //Store all the queries back
+  	STORE [EVENTS_QUERY_CORE] INTO [$(CONFIG.QVD_STORE.EVENT_QUERY_CORE)] (QVD);
+ 	DROP TABLE EVENTS_QUERY_CORE;
+    DROP TABLE LAST_END_EVENT;
+  END IF;
+ 
+  TRACE '[EVENTS_QUERY_CORE] Buliding QVD FINISHED';
+  TRACE '=============================';
+END SUB;  
+  
+  
+///$tab QVD - EVENTS_WAREHOUSE_CORE
+/*
+
+	We check to see if the Store location for EVENTS_WAREHOUSE_CORE is already created or not
+    If not we generate the last X days worth stored in the CONFIG.WAREHOUSE_RETENTION_PERIOD_DAYS variable.
+    If we have a QVD it will get any Warehouse sessions stored in snowflake up to NOW() and remove any older than the 
+    CONFIG.WAREHOUSE_RETENTION_PERIOD_DAYS. 
+
+*/
+SUB EVENTS_WAREHOUSE_CORE
+  TRACE '=============================';
+  TRACE '[EVENTS_WAREHOUSE_CORE] Buliding QVD STARTED';
+  
+  IF(ISNULL(QvdCreateTime('$(CONFIG.QVD_STORE.EVENT_WAREHOUSE_CORE)'))) THEN
+  	TRACE '[EVENTS_WAREHOUSE_CORE] New QVD Load';
+   
+   	//Load to cashing days
+  	[EVENTS_WAREHOUSE_CORE]:
+    SELECT * FROM (
+        WITH WAREHOUSE_EVENTS_BASE AS (
+            SELECT
+                    TIMESTAMP AS START_EVENT_DATETIME
+                ,   WAREHOUSE_ID
+                ,   CASE 
+                        WHEN EVENT_NAME = 'RESUME_WAREHOUSE'  AND EVENT_STATE = 'STARTED' THEN 'START'
+                        WHEN EVENT_NAME = 'SUSPEND_WAREHOUSE' AND EVENT_STATE = 'COMPLETED' THEN 'END'
+                        END AS "EVENT"
+                , LAG(TIMESTAMP,-1) OVER (PARTITION BY WAREHOUSE_ID ORDER BY TIMESTAMP ASC)  AS END_EVENT_DATETIME
+                , LAG(TIMESTAMP,-2) OVER (PARTITION BY WAREHOUSE_ID ORDER BY TIMESTAMP ASC) AS NEXT_EVENT_DATETIME
+            FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_EVENTS_HISTORY
+            WHERE 1=1            
+                AND (
+                        (EVENT_NAME = 'RESUME_WAREHOUSE'  AND EVENT_STATE = 'STARTED')
+                        OR
+                        (EVENT_NAME = 'SUSPEND_WAREHOUSE' AND EVENT_STATE = 'COMPLETED')
+                    )
+            ORDER BY TIMESTAMP ASC
+        ),
+        WAREHOUSE_EVENTS_CORE AS (
+            SELECT 
+                    WAREHOUSE_ID                                                AS "%KEY_WAREHOUSE"
+                ,   START_EVENT_DATETIME
+                ,   END_EVENT_DATETIME
+                ,   NEXT_EVENT_DATETIME   
+                ,   DATEDIFF('SECONDS',START_EVENT_DATETIME,END_EVENT_DATETIME) AS RUN_TIME
+                ,   DATEDIFF('SECONDS',END_EVENT_DATETIME,NEXT_EVENT_DATETIME)  AS TIME_TO_NEXT_SPIN_UP
+                ,   WAREHOUSE_ID || '-' || START_EVENT_DATETIME                 AS "%KEY_WAREHOUSE_SESSION"
+            FROM WAREHOUSE_EVENTS_BASE
+            WHERE 1=1
+                AND ( 
+                        (EVENT = 'START' AND DATE_TRUNC('DAY',START_EVENT_DATETIME) > (CURRENT_DATE - $(CONFIG.WAREHOUSE_RETENTION_PERIOD_DAYS)))
+                        OR 
+                        (EVENT = 'START' AND END_EVENT_DATETIME IS NULL) //Picks up Events that have NOT evented
+                        OR 
+                        (EVENT = 'START' AND NEXT_EVENT_DATETIME IS NULL) //Picks up events that are the newest, so might have finishned but no runs happened after.
+                    )
+        )
+        SELECT * FROM WAREHOUSE_EVENTS_CORE
+    );
+    STORE [EVENTS_WAREHOUSE_CORE] INTO [$(CONFIG.QVD_STORE.EVENT_WAREHOUSE_CORE)] (QVD);
+    DROP TABLE [EVENTS_WAREHOUSE_CORE];
+  ELSE
+  	TRACE '[EVENTS_WAREHOUSE_CORE] Append Current QVD';
+    
+    //Find the last Warehouse event we have
+  	[LAST_END_EVENT]: LOAD TIMESTAMP(MAX(START_EVENT_DATETIME),'YYYY-MM-DD hh:mm:ss.fff') AS LAST_WAREHOUSE_EVENT FROM [$(CONFIG.QVD_STORE.EVENT_WAREHOUSE_CORE)] (QVD);
+	
+
+	//Store that date in a variable.
+    LET v.last_warehouse_end_event = PEEK('LAST_WAREHOUSE_EVENT',0,'LAST_END_EVENT');
+    //16/04/2024 - Added check to see if last stored queries are more than the retention period.
+    IF((NUM(NOW()) - NUM(v.last_warehouse_end_event)) > $(CONFIG.QUERY_RETENTION_PERIOD_DAYS)) THEN
+      TRACE LAST RAN OUTSIZE WAREHOUSE RETENTION;      
+      LET APP.QUERY_PARAM = '(EVENT = '&'''START'''&' AND DATE_TRUNC('&'''DAY'''&',START_EVENT_DATETIME) > (CURRENT_DATE - '& $(CONFIG.WAREHOUSE_RETENTION_PERIOD_DAYS) &'))';
+    ELSE 
+    	TRACE LAST RAN WITHIN WAREHOUSE RETENTION;
+    	LET APP.QUERY_PARAM = '(EVENT = '&'''START'''&' AND START_EVENT_DATETIME >= TO_TIMESTAMP(' & '''$(v.last_warehouse_end_event)''' &'))';
+    END IF;
+
+
+
+    //Load all the warehouse events after or on this timestamp  
+    [EVENTS_WAREHOUSE_CORE]:
+        SELECT * FROM (
+            WITH WAREHOUSE_EVENTS_BASE AS (
+                SELECT
+                        TIMESTAMP AS START_EVENT_DATETIME
+                    ,   WAREHOUSE_ID
+                    ,   CASE 
+                            WHEN EVENT_NAME = 'RESUME_WAREHOUSE'  AND EVENT_STATE = 'STARTED' THEN 'START'
+                            WHEN EVENT_NAME = 'SUSPEND_WAREHOUSE' AND EVENT_STATE = 'COMPLETED' THEN 'END'
+                            END AS "EVENT"
+                    , LAG(TIMESTAMP,-1) OVER (PARTITION BY WAREHOUSE_ID ORDER BY TIMESTAMP ASC)  AS END_EVENT_DATETIME
+                    , LAG(TIMESTAMP,-2) OVER (PARTITION BY WAREHOUSE_ID ORDER BY TIMESTAMP ASC) AS NEXT_EVENT_DATETIME
+                FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_EVENTS_HISTORY
+                WHERE 1=1            
+                    AND (
+                            (EVENT_NAME = 'RESUME_WAREHOUSE'  AND EVENT_STATE = 'STARTED')
+                            OR
+                            (EVENT_NAME = 'SUSPEND_WAREHOUSE' AND EVENT_STATE = 'COMPLETED')
+                        )
+                ORDER BY TIMESTAMP ASC
+            ),
+            WAREHOUSE_EVENTS_CORE AS (
+                SELECT 
+                        WAREHOUSE_ID                                                AS "%KEY_WAREHOUSE"
+                    ,   START_EVENT_DATETIME
+                    ,   END_EVENT_DATETIME
+                    ,   NEXT_EVENT_DATETIME   
+                    ,   DATEDIFF('SECONDS',START_EVENT_DATETIME,END_EVENT_DATETIME) AS RUN_TIME
+                    ,   DATEDIFF('SECONDS',END_EVENT_DATETIME,NEXT_EVENT_DATETIME)  AS TIME_TO_NEXT_SPIN_UP
+                    ,   WAREHOUSE_ID || '-' || START_EVENT_DATETIME                 AS "%KEY_WAREHOUSE_SESSION"
+                FROM WAREHOUSE_EVENTS_BASE
+                WHERE 1=1
+                    AND (
+                            
+                            $(APP.QUERY_PARAM)
+                            OR 
+                            (EVENT = 'START' AND END_EVENT_DATETIME IS NULL) //Picks up Events that have NOT evented
+                            OR 
+                            (EVENT = 'START' AND NEXT_EVENT_DATETIME IS NULL) //Picks up events that are the newest, so might have finishned but no runs happened after.
+                        )
+            )
+            SELECT * FROM WAREHOUSE_EVENTS_CORE
+        );
+        //EVENT = 'START' AND START_EVENT_DATETIME >= TO_TIMESTAMP('$(v.last_warehouse_end_event)'))
+        //Load all the current warehouse events, but remove the ones with no Next event date, as these also get updated from the above script.
+        //Also remove and prior to the retention period
+        [EVENTS_WAREHOUSE_CORE]:LOAD * FROM [$(CONFIG.QVD_STORE.EVENT_WAREHOUSE_CORE)](QVD) 
+		WHERE NOT ISNULL(NEXT_EVENT_DATETIME) AND FLOOR(NUM(START_EVENT_DATETIME)) >= NUM(TODAY(1) - $(CONFIG.QUERY_RETENTION_PERIOD_DAYS) );
+        
+        STORE [EVENTS_WAREHOUSE_CORE] INTO [$(CONFIG.QVD_STORE.EVENT_WAREHOUSE_CORE)] (QVD);
+        DROP TABLE [EVENTS_WAREHOUSE_CORE];
+        DROP TABLE LAST_END_EVENT;
+  END IF;
+
+  
+  TRACE '[EVENTS_WAREHOUSE_CORE] Buliding QVD FINISHED';
+  TRACE '=============================';
+END SUB;
+///$tab QVD - WAREHOUSE_QUERY_EVENTS
+/*
+
+	This section loops through every day of data to store a map of QVD ID to WAREHOUSE SESSION ID.
+    If we dont have a QVD it starts from the ealier query date
+    If we do have a QVD store it will append from the latest of what we already have
+    
+*/
+SUB WAREHOUSE_QUERY_EVENTS
+
+  TRACE '=============================';
+  TRACE '[WAREHOUSE_QUERY_EVENTS] Building QVD STARTED';
+  
+  
+  LET QVDEXSIST = QvdCreateTime('$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)'); //NULL IF None exsisting
+
+  LET v.START_DAY = ;
+
+  IF(ISNULL(QvdCreateTime('$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)'))) THEN 
+      TRACE '[WAREHOUSE_QUERY_EVENTS] NEW QVD';
+      TRACE '[WAREHOUSE_QUERY_EVENTS] WARNING: INITAL LOAD WILL TAKE TIME(Hours)';
+      //If we have NO QVD.
+      [TEMP]: SELECT MIN(DATE_TRUNC(DAY,START_TIME)) AS START_DATE FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY;
+      v.START_DAY = PEEK('START_DATE',0,'TEMP');
+      v.START_DAY = $(CONFIG.NEW_RUN_START_DATE_MAPPING);
+      DROP TABLE [TEMP];
+  ELSE
+      //If we do have a QVD
+      TRACE '[WAREHOUSE_QUERY_EVENTS] APPREND EXSISTING QVD';
+      [TEMP]:LOAD FLOOR(MAX(QUERY_START_TIME)) AS START_DATE FROM [$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)](QVD);
+      v.START_DAY = PEEK('START_DATE',0,'TEMP');
+      DROP TABLE [TEMP];
+  END IF;
+
+  LET END_DATE = TODAY(1) - 1;
+  [ALL_DATES]:
+  LOAD
+  DATE($(v.START_DAY) + ROWNO() -1) AS "DATES"
+  AUTOGENERATE $(END_DATE) - $(v.START_DAY) +1;
+
+
+  LET i = 0;
+  FOR i = 0 to (NoOfRows('ALL_DATES') - 1) STEP 1
+
+      LET v.DATESTRING = TEXT(DATE(PEEK('DATES',i,'ALL_DATES'),'YYYY-MM-DD'));
+      TRACE '[WAREHOUSE_QUERY_EVENTS] Getting data for: ' & $(v.DATESTRING) ;
+      CALL GetWarehouseSessions(v.DATESTRING);
+
+      /*Creates [WAREHOUSE_QUERY_MAP]*/
+      IF(ISNULL(QvdCreateTime('$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)'))) THEN
+          STORE [WAREHOUSE_QUERY_MAP] INTO [$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)](QVD);
+          DROP TABLE [WAREHOUSE_QUERY_MAP];
+      ELSE
+          [WAREHOUSE_QUERY_MAP]: LOAD * FROM [$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)](QVD) WHERE FLOOR(NUM(QUERY_START_TIME)) >= NUM($(CONFIG.NEW_RUN_START_DATE_MAPPING));
+          STORE [WAREHOUSE_QUERY_MAP] INTO [$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)](QVD);
+          DROP TABLE [WAREHOUSE_QUERY_MAP];
+      END IF;
+   NEXT;
+   
+   //Clean up
+   DROP TABLE ALL_DATES;
+   
+   TRACE '[WAREHOUSE_QUERY_EVENTS] Building QVD FINISHED';
+   TRACE '=============================';
+END SUB;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///$tab QVD - EVENTS_WAREHOUSE
+/*
+
+	We take the output of the EVENTS_WAREHOUSE_CORE Sub and append on details about queries to get key measures
+    this is depended on the EVENTS_WAREHOUSE_CORE & WAREHOUSE_QUERY_EVENTS Subs QVDs being populated
+
+*/
+
+SUB EVENTS_WAREHOUSE
+  TRACE '=============================';
+  TRACE '[EVENTS_WAREHOUSE] Building QVD STARTED';
+
+  [FIRST_LAST_Q]: 
+  LOAD 
+          	%KEY_WAREHOUSE_SESSION 
+      ,		MAX(QUERY_END_TIME) AS LAST_QUERY_TIME
+      ,   	MIN(QUERY_START_TIME) AS FIRST_QUERY_TIME
+      ,   	COUNT(QUERY_ID) AS QUERY_COUNT 
+      , 	MIN(QUERY_START_TIME) - MIN(START_EVENT_DATETIME) AS DWELL_FROM_START
+      ,		MIN(END_EVENT_DATETIME) - MAX(QUERY_END_TIME) AS DWELL_FROM_END
+  FROM [$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)](QVD)
+  GROUP BY %KEY_WAREHOUSE_SESSION;
+
+
+  [EVENTS_WAREHOUSE]:LOAD * FROM [$(CONFIG.QVD_STORE.EVENT_WAREHOUSE_CORE)](QVD);
+  LEFT JOIN LOAD * Resident [FIRST_LAST_Q];
+
+  DROP TABLE FIRST_LAST_Q;
+  
+  STORE [EVENTS_WAREHOUSE] INTO [$(CONFIG.QVD_STORE.EVENT_WAREHOUSE)](QVD);
+  DROP TABLE [EVENTS_WAREHOUSE];
+
+   
+   TRACE '[EVENTS_WAREHOUSE] Building QVD FINISHED';
+   TRACE '=============================';
+END SUB;
+///$tab QVD - EVENTS_QUERY
+/*
+
+	We take the output of the EVENTS_QUERY_CORE Sub and append the WAREHOUSE Session to it. 
+    this is depended on the EVENTS_QUERY_CORE & WAREHOUSE_QUERY_EVENTS Subs QVDs being populated
+    
+    RP 0103/2024 - TO BE CONVERTED INTO A DAILY JOIN LOOP.
+
+*/
+SUB EVENTS_QUERY
+  TRACE '=============================';
+  TRACE '[EVENTS_QUERY] Building QVD STARTED';
+  
+  //If the QVD does exsists, empty it, if not dont do anything as its built laster (first time loading the script & building new QVD)
+  IF(NOT ISNULL(QvdCreateTime('$(CONFIG.QVD_STORE.EVENT_QUERY)'))) THEN  	
+    //Empty the EVENTS_QUERY ready to store the new results
+    [TEMP]: LOAD * FROM [$(CONFIG.QVD_STORE.EVENT_QUERY)](QVD) WHERE 1=2 ;
+    STORE [TEMP] INTO [$(CONFIG.QVD_STORE.EVENT_QUERY)](QVD); DROP TABLE [TEMP];
+  END IF;
+  
+  
+  [MAX_DATE]: LOAD MAX(FLOOR(QUERY_START_TIME)) AS MAX_DATE FROM [$(CONFIG.QVD_STORE.EVENT_QUERY_CORE)] (QVD);
+  [MIN_DATE]: LOAD MIN(FLOOR(QUERY_START_TIME)) AS MIN_DATE FROM [$(CONFIG.QVD_STORE.EVENT_QUERY_CORE)] (QVD);
+  
+  LET QUERY.MAX_DATE = Peek('MAX_DATE', 0, 'MAX_DATE');
+  LET QUERY.MIN_DATE = Peek('MIN_DATE', 0, 'MIN_DATE');
+  
+  DROP TABLE MAX_DATE, MIN_DATE;
+  
+  
+ FOR i = QUERY.MIN_DATE to QUERY.MAX_DATE 
+ 	//For loop
+    TRACE $(i) Is being looped.;
+    
+    //Load Join the Query table
+    [EVENTS_QUERY]: LOAD * FROM [$(CONFIG.QVD_STORE.EVENT_QUERY_CORE)] (QVD) WHERE FLOOR(QUERY_START_TIME) = $(i);
+              LEFT JOIN LOAD QUERY_ID AS %KEY_QUERY, %KEY_WAREHOUSE_SESSION FROM [$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)](QVD);
+              
+    //Load the current Queryes and store back
+    
+    //We only want to load the current data is we have the QVD.
+    IF(NOT ISNULL(QvdCreateTime('$(CONFIG.QVD_STORE.EVENT_QUERY)'))) THEN 	
+        [EVENTS_QUERY]: LOAD * FROM [$(CONFIG.QVD_STORE.EVENT_QUERY)](QVD);
+  	END IF;
+    //If not always store the data back.
+    STORE [EVENTS_QUERY] INTO [$(CONFIG.QVD_STORE.EVENT_QUERY)](QVD);
+    DROP TABLE [EVENTS_QUERY];
+    
+ NEXT;
+  
+  
+//   [EVENTS_QUERY]: LOAD * FROM [$(CONFIG.QVD_STORE.EVENT_QUERY_CORE)] (QVD);
+//               LEFT JOIN LOAD QUERY_ID AS %KEY_QUERY, %KEY_WAREHOUSE_SESSION FROM [$(CONFIG.QVD_STORE.MAPPING_WAREHOUSE_QUERY_SESSIONS)](QVD);
+
+//   STORE [EVENTS_QUERY] INTO [$(CONFIG.QVD_STORE.EVENT_QUERY)](QVD);
+//   DROP TABLE [EVENTS_QUERY];
+  
+  TRACE '[EVENTS_QUERY] Building QVD FINIHSED';
+  TRACE '=============================';
+END SUB;         
+///$tab QVD - DAILY COST AGGR
+/*
+
+	This SUB loops day by day. If we have a QVD store created alreayd it will append newest days that we dont have
+    If we dont have a QVD it will run Day by Day from the first query you have.
+    This can take upto 1 minute per day (~Based on ~1million Queries a Day)
+*/
+SUB DAILY_COST_AGGR
+  TRACE '=============================';
+  TRACE '[DAILY_AGGR] Building QVD STARTED';
+
+  LET QVDEXSIST = QvdCreateTime('$(CONFIG.QVD_STORE.DAILY_COST_AGGR)'); //NULL IF None exsisting
+
+  LET v.START_DAY = ;
+
+  IF(ISNULL(QvdCreateTime('$(CONFIG.QVD_STORE.DAILY_COST_AGGR)'))) THEN 
+      //If we have NO QVD.
+      TRACE '[DAILY_AGGR] NEW QVD';
+      TRACE '[DAILY_AGGR] WARNING: INITAL LOAD WILL TAKE TIME(Hours)';
+      
+      [TEMP]: SELECT MIN(DATE_TRUNC(DAY,START_TIME)) AS START_DATE FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY;
+      v.START_DAY = PEEK('START_DATE',0,'TEMP');
+      v.START_DAY = $(CONFIG.NEW_RUN_START_DATE);
+      DROP TABLE [TEMP];
+  ELSE
+      //If we do have a QVD
+      TRACE '[DAILY_AGGR] APPEND QVD';
+      [TEMP]:LOAD FLOOR(MAX(DATE(DATE#(BILLING_DAY,'YYYY-MM-DD')))) AS START_DATE FROM [$(CONFIG.QVD_STORE.DAILY_COST_AGGR)](QVD);
+      v.START_DAY = PEEK('START_DATE',0,'TEMP');
+      DROP TABLE [TEMP];
+  END IF;
+
+  LET END_DATE = TODAY(1) - 1;
+  [ALL_DATES]:
+  LOAD
+  DATE($(v.START_DAY) + ROWNO() -1) AS "DATES"
+  AUTOGENERATE $(END_DATE) - $(v.START_DAY) +1;
+
+
+  LET i = 0;
+  FOR i = 0 to (NoOfRows('ALL_DATES') - 2) STEP 1
+
+      LET v.DATESTRING = TEXT(DATE(PEEK('DATES',i,'ALL_DATES'),'YYYY-MM-DD'));
+      
+      /*Creates [DAILY_AGGR]*/
+      TRACE '[DAILY_AGGR] Getting data for: ' & $(v.DATESTRING) ;
+      CALL GETDAILYAGGR(v.DATESTRING);
+      
+      IF(ISNULL(QvdCreateTime('$(CONFIG.QVD_STORE.DAILY_COST_AGGR)'))) THEN
+          STORE [DAILY_AGGR] INTO [$(CONFIG.QVD_STORE.DAILY_COST_AGGR)](QVD);
+          DROP TABLE [DAILY_AGGR];
+      ELSE
+          [DAILY_AGGR]: LOAD DISTINCT * FROM [$(CONFIG.QVD_STORE.DAILY_COST_AGGR)](QVD);
+          STORE [DAILY_AGGR] INTO [$(CONFIG.QVD_STORE.DAILY_COST_AGGR)](QVD);
+          DROP TABLE [DAILY_AGGR];
+      END IF;
+   NEXT;
+   
+   //Clean up
+   DROP TABLE ALL_DATES;
+  TRACE '[DAILY_AGGR] Building QVD FINIHSED';
+  TRACE '=============================';
+END SUB;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///$tab --EXTRACT--
+
+///$tab FL - INV - DATABASE
+/*
+
+	Loads information about all the databases in the snowflake environment.
+
+*/
+
+SUB EXTRACT_DATABASES 
+    
+    
+    DATABASES:
+    LOAD 
+            DATABASE_ID 						AS %KEY_DATABASE
+        ,	DATABASE_ID    
+        ,	DATABASE_NAME				
+        ,	DATABASE_OWNER
+        ,	COMMENT								AS DATABASE_COMMENT
+        ,	date(floor(CREATED))				AS DATABASE_CREATED_DATE
+        ,	time(CREATED - floor(CREATED))		AS DATABASE_CREATED_TIME
+        ,	LAST_ALTERED						AS DATABASE_LAST_ALTERED
+        ,	DELETED								AS DATABASE_DELETED
+        ,	IF(ISNULL(DELETED),0,1)  			AS FLAG_DATABASE_DELETED
+        ,	TYPE								AS DATABASE_TYPE
+    ;
+    SELECT 
+        "DATABASE_ID",
+        "DATABASE_NAME",
+        "DATABASE_OWNER",
+        "IS_TRANSIENT",
+        "COMMENT",
+        "CREATED",
+        "LAST_ALTERED",
+        "DELETED",
+        "RETENTION_TIME",
+        "RESOURCE_GROUP",
+        "TYPE"
+    FROM 
+        "SNOWFLAKE"."ACCOUNT_USAGE"."DATABASES"
+    $(vL.DELETED_OBJECT_SCRIPT)
+    ;
+
+END SUB
+///$tab FL - INV - SCHEMA
+/*
+
+	Loads information about all the Schemas in the snowflake environment.
+
+*/
+
+SUB EXTRACT_SCHEMAS
+
+  [SCHEMAS]:
+  LOAD
+      		SCHEMA_ID 						AS %KEY_SCHEMA
+      ,		CATALOG_ID						AS %KEY_DATABASE
+      ,		CATALOG_NAME
+      ,		SCHEMA_ID 
+      ,		SCHEMA_NAME 
+      ,		SCHEMA_OWNER 
+      ,		date(floor(CREATED))			AS SCHEMA_CREATED_DATE 
+      ,		LAST_ALTERED					AS SCHEMA_LAST_ALTERED 
+      , 	DELETED							AS SCHEMA_DELETED 
+      ,		IF(ISNULL(DELETED),0,1)  		AS FLAG_SCHEMA_DELETED
+      ,		"CATALOG_NAME"					AS SCHEMA_TYPE
+  ;
+  SELECT 
+      "SCHEMA_ID",
+      "SCHEMA_NAME",
+      "CATALOG_ID",
+      "CATALOG_NAME",
+      "SCHEMA_OWNER",
+      "RETENTION_TIME",
+      "IS_TRANSIENT",
+      "IS_MANAGED_ACCESS",
+      "DEFAULT_CHARACTER_SET_CATALOG",
+      "DEFAULT_CHARACTER_SET_SCHEMA",
+      "DEFAULT_CHARACTER_SET_NAME",
+      "SQL_PATH",
+      "COMMENT",
+      "CREATED",
+      "LAST_ALTERED",
+      "DELETED",
+      "OWNER_ROLE_TYPE"
+  FROM 
+      "SNOWFLAKE"."ACCOUNT_USAGE"."SCHEMATA"
+  $(vL.DELETED_OBJECT_SCRIPT)
+  ;
+
+END SUB
+
+///$tab FL - INV - TABLE 
+/*
+
+	Loads information about all the Tables in the snowflake environment.
+
+*/
+SUB EXTRACT_TABLES
+  [TABLES]:
+  LOAD 
+          	TABLE_ID  					AS %KEY_TABLE
+      ,		TABLE_ID
+      ,		TABLE_SCHEMA_ID				AS %KEY_SCHEMA
+      ,		TABLE_CATALOG_ID			AS %KEY_DATABASE
+      ,		TABLE_CATALOG
+      ,		TABLE_SCHEMA
+      ,		TABLE_NAME
+      ,		TABLE_OWNER
+      ,		TABLE_TYPE 
+      ,		IS_TRANSIENT
+      ,		CLUSTERING_KEY
+      ,		ROW_COUNT					AS TABLE_ROW_COUNT
+      ,		BYTES						AS TABLE_BYTES
+      ,		date(floor(CREATED))		AS TABLE_CREATED_DATE
+      ,		LAST_ALTERED				AS TABLE_LAST_ALTERED
+      ,		LAST_DDL				
+      ,		LAST_DDL_BY
+      ,		DELETED						AS TABLE_DELETED
+      ,		IF(ISNULL(DELETED),0,1) 	AS FLAG_TABLE_DELETED
+      ,		COMMENT						AS TABLE_COMMENT
+      ,     TABLE_CATALOG & '.' & TABLE_SCHEMA  & '.' & TABLE_NAME AS DATABASE_SCHEMA_TABLE_NAME
+  ;
+  SELECT 
+      "TABLE_ID",
+      "TABLE_NAME",
+      "TABLE_SCHEMA_ID",
+      "TABLE_SCHEMA",
+      "TABLE_CATALOG_ID",
+      "TABLE_CATALOG",
+      "TABLE_OWNER",
+      "TABLE_TYPE",
+      "IS_TRANSIENT",
+      "CLUSTERING_KEY",
+      "ROW_COUNT",
+      "BYTES",
+      "RETENTION_TIME",
+      "SELF_REFERENCING_COLUMN_NAME",
+      "REFERENCE_GENERATION",
+      "USER_DEFINED_TYPE_CATALOG",
+      "USER_DEFINED_TYPE_SCHEMA",
+      "USER_DEFINED_TYPE_NAME",
+      "IS_INSERTABLE_INTO",
+      "IS_TYPED",
+      "COMMIT_ACTION",
+      "CREATED",
+      "LAST_ALTERED",
+      "LAST_DDL",
+      "LAST_DDL_BY",
+      "DELETED",
+      "AUTO_CLUSTERING_ON",
+      "COMMENT",
+      "OWNER_ROLE_TYPE",
+      "INSTANCE_ID"
+  FROM 
+      "SNOWFLAKE"."ACCOUNT_USAGE"."TABLES"
+  $(vL.DELETED_OBJECT_SCRIPT)
+  ;
+  
+END SUB
+
+
+///$tab FL - INV - COLUMN
+/*
+
+	Loads information about all the Columns in the snowflake environment.
+
+*/
+
+SUB EXTRACT_COLUMNS
+  [COLUMNS]:
+  LOAD 
+        COLUMN_ID
+      ,	COLUMN_ID				AS %KEY_COLUMN
+      ,	COLUMN_NAME
+      ,	TABLE_ID				AS %KEY_TABLE
+      ,	TABLE_SCHEMA_ID			AS %KEY_SCHEMA
+      ,	TABLE_CATALOG_ID		AS %KEY_DATABASE
+      ,	IS_NULLABLE				AS COLUMN_IS_NULLABLE
+      ,	DATA_TYPE				AS COLUMN_TYPE
+      ,	COMMENT					AS COLUMN_COMMENT
+      ,	IF(ISNULL(DELETED),0,1) AS FLAG_COLUMN_DELETED
+      ,	DELETED					AS COLUMN_DELETED
+  ;
+  SELECT 
+      "COLUMN_ID",
+      "COLUMN_NAME",
+      "TABLE_ID",
+      "TABLE_NAME",
+      "TABLE_SCHEMA_ID",
+      "TABLE_SCHEMA",
+      "TABLE_CATALOG_ID",
+      "TABLE_CATALOG",
+      "ORDINAL_POSITION",
+      "COLUMN_DEFAULT",
+      "IS_NULLABLE",
+      "DATA_TYPE",
+      "CHARACTER_MAXIMUM_LENGTH",
+      "CHARACTER_OCTET_LENGTH",
+      "NUMERIC_PRECISION",
+      "NUMERIC_PRECISION_RADIX",
+      "NUMERIC_SCALE",
+      "DATETIME_PRECISION",
+      "INTERVAL_TYPE",
+      "INTERVAL_PRECISION",
+      "CHARACTER_SET_CATALOG",
+      "CHARACTER_SET_SCHEMA",
+      "CHARACTER_SET_NAME",
+      "COLLATION_CATALOG",
+      "COLLATION_SCHEMA",
+      "COLLATION_NAME",
+      "DOMAIN_CATALOG",
+      "DOMAIN_SCHEMA",
+      "DOMAIN_NAME",
+      "UDT_CATALOG",
+      "UDT_SCHEMA",
+      "UDT_NAME",
+      "SCOPE_CATALOG",
+      "SCOPE_SCHEMA",
+      "SCOPE_NAME",
+      "MAXIMUM_CARDINALITY",
+      "DTD_IDENTIFIER",
+      "IS_SELF_REFERENCING",
+      "IS_IDENTITY",
+      "IDENTITY_GENERATION",
+      "IDENTITY_START",
+      "IDENTITY_INCREMENT",
+      "IDENTITY_MAXIMUM",
+      "IDENTITY_MINIMUM",
+      "IDENTITY_CYCLE",
+      "IDENTITY_ORDERED",
+      "COMMENT",
+      "DELETED"
+  FROM 
+      "SNOWFLAKE"."ACCOUNT_USAGE"."COLUMNS"
+  $(vL.DELETED_OBJECT_SCRIPT)
+  ;
+
+
+  LEFT JOIN (COLUMNS)
+  LOAD DISTINCT
+          %KEY_TABLE
+      ,	TABLE_CREATED_DATE AS COLUMN_CREATED_DATE
+  RESIDENT
+      TABLES
+  ;
+END SUB
+
+
+///$tab FL - SEC - ROLES
+/*
+
+	Loads information about all the Roles in the snowflake environment.
+
+*/
+
+SUB EXTRACT_ROLES
+[ROLES]:
+  LOAD
+          	ROLE_ID				
+      ,		CREATED_ON 			AS ROLE_CREATED_DATE
+      ,		DELETED_ON 			AS ROLE_DELETED_DATE
+      ,		NAME				AS ROLE_NAME	
+      ,   	ROLE_ID 			AS %KEY_ROLE
+      ,		COMMENT 			AS ROLE_COMMENT
+      ,		OWNER 				AS ROLE_OWNER
+      ,   	ROLE_TYPE
+      ,		ROLE_DATABASE_NAME
+      ,		ROLE_INSTANCE_ID
+  ;
+  SELECT 
+      "ROLE_ID",
+      "CREATED_ON",
+      "DELETED_ON",
+      "NAME",
+      "COMMENT",
+      "OWNER",
+      "ROLE_TYPE",
+      "ROLE_DATABASE_NAME",
+      "ROLE_INSTANCE_ID"
+  FROM 
+      "SNOWFLAKE"."ACCOUNT_USAGE"."ROLES"
+  WHERE
+  	DELETED_ON IS NULL
+    ;
+END SUB
+///$tab FL - SEC - USERS
+/*
+
+	Loads information about all the Roles in the snowflake environment.
+
+*/
+
+SUB EXTRACT_USERS
+[USERS]:
+  LOAD 
+        	USER_ID	 																		AS %KEY_USER	
+      ,	 	USER_ID	
+      ,		NAME																			AS USER_NAME
+      ,		CREATED_ON																		AS USER_CREATED_ON
+      ,		DELETED_ON																		AS USER_DELETED_ON
+      ,		LOGIN_NAME																		AS USER_LOGIN_NAME
+      ,		DISPLAY_NAME 																	AS USER_DISPLAY_NAME
+      ,		FIRST_NAME																		AS USER_FIRST_NAME
+      ,		LAST_NAME																		AS USER_LAST_NAME
+      ,		EMAIL																			AS USER_EMAIL
+      ,		DISABLED																		AS USER_DISABLED
+      ,		SNOWFLAKE_LOCK																	AS USER_SNOWFLAKE_LOCK
+      ,		DEFAULT_WAREHOUSE																AS USER_DEFAULT_WAREHOUSE
+      ,		DEFAULT_ROLE																	AS USER_DEFAULT_ROLE
+      ,		LAST_SUCCESS_LOGIN																AS USER_LAST_SUCCESS_LOGIN
+      //,		IF(ISNULL(DELETED_ON) AND DISABLED = 'false' AND SNOWFLAKE_LOCK = 'false',1,0) 	AS FLAG_USER_ACTIVE
+      ,		IF(ISNULL(DELETED_ON) AND DISABLED = 'false' ,1,0) 	AS FLAG_USER_ACTIVE
+  ;
+  SELECT 
+      "USER_ID",
+      "NAME",
+      "CREATED_ON",
+      "DELETED_ON",
+      "LOGIN_NAME",
+      "DISPLAY_NAME",
+      "FIRST_NAME",
+      "LAST_NAME",
+      "EMAIL",
+      "MUST_CHANGE_PASSWORD",
+      "HAS_PASSWORD",
+      "COMMENT",
+      "DISABLED",
+      "SNOWFLAKE_LOCK",
+      "DEFAULT_WAREHOUSE",
+      "DEFAULT_NAMESPACE",
+      "DEFAULT_ROLE",
+      "EXT_AUTHN_DUO",
+      "EXT_AUTHN_UID",
+      "BYPASS_MFA_UNTIL",
+      "LAST_SUCCESS_LOGIN",
+      "EXPIRES_AT",
+      "LOCKED_UNTIL_TIME",
+      "HAS_RSA_PUBLIC_KEY",
+      "PASSWORD_LAST_SET_TIME",
+      "OWNER",
+      "DEFAULT_SECONDARY_ROLE"
+  FROM 
+      "SNOWFLAKE"."ACCOUNT_USAGE"."USERS"
+  WHERE
+  		DELETED_ON IS NULL
+      ;
+
+END SUB    
+///$tab FL - SEC - PRIVILEGES
+/*
+
+	Loads information about all the Privileges in the snowflake environment.
+
+*/
+
+SUB EXTRACT_PRIVILEGES
+
+	 
+	[PRIVS]:  
+    LOAD *,
+    	%KEY_ROLE & '-' & %KEY_INVENTORY AS %KEY_PRIV
+    
+    ;
+    LOAD 
+        	APPLYMAP('ROLE_NAME_TO_ID_MAP', ROLE) 																AS %KEY_ROLE
+        ,	APPLYMAP('DATABASE_NAME_TO_ID_MAP',GRANT_ON_CATALOG,'')&'-'&
+        	APPLYMAP('SCHEMA_NAME_TO_ID_MAP',GRANT_ON_CATALOG&'.'&GRANT_ON_SCHEMA,'')&'-'&
+            APPLYMAP('TABLE_NAME_TO_ID_MAP',GRANT_ON_CATALOG&'.'&GRANT_ON_SCHEMA&'.'&GRANT_ON_NAME,'')&'-'		AS %KEY_INVENTORY
+        //,	'PRIVS' 																							AS TRANSACTION_TYPE
+    	,   GRANTED_TO
+        ,   GRANTEE_NAME
+        ,	GRANTED_ON
+        ,   GRANTED_BY
+        ,   CREATED_ON
+        ,   GRANT_PRIV
+        ,   GRANT_ON_CATALOG
+        ,   GRANT_ON_SCHEMA
+        ,   GRANT_ON_NAME
+        ,	PRIV_KEY
+//        ,   DATABASE_SCHEMA_NAME
+//        ,   DATABASE_SCHEMA_TABLE_NAME
+    ;
+	SELECT 
+                GRANTED_TO
+            ,   GRANTEE_NAME AS ROLE //LINK IN THE DATA MODEL.
+            ,	GRANTEE_NAME
+            ,   GRANTED_BY
+            ,   CREATED_ON
+    		,	GRANTED_ON
+            ,   PRIVILEGE                                                               AS GRANT_PRIV
+            ,   TABLE_CATALOG                                                           AS GRANT_ON_CATALOG
+            ,   TABLE_SCHEMA                                                            AS GRANT_ON_SCHEMA
+            ,   NAME                                                                    AS GRANT_ON_NAME
+            ,   TABLE_CATALOG || '.' || TABLE_SCHEMA                                    AS DATABASE_SCHEMA_NAME
+            ,   TABLE_CATALOG || '.' || TABLE_SCHEMA || '.' || NAME                     AS DATABASE_SCHEMA_TABLE_NAME
+            ,   GRANTEE_NAME  || '-' || CREATED_ON   || '-' || PRIVILEGE || '-' || NAME    AS PRIV_KEY
+    
+        FROM "SNOWFLAKE"."ACCOUNT_USAGE"."GRANTS_TO_ROLES";
+END SUB
+
+
+    
+///$tab FL - USE - QUERY SESS
+/*
+
+	Loads information about all the Sessions in the snowflake environment.
+
+*/
+SUB EXTRACT_SESSIONS
+
+    [SESSIONS]:
+    LOAD
+          *	
+	,	IF(ISNULL(CLIENT_APPLICATION), dual('OTHER',5),
+              IF(WILDMATCH(UPPER(CLIENT_APPLICATION),'*COMPOSE*','*REPLICATE*') = 1, dual('QLIK - QDI',3),
+                      IF(WILDMATCH(UPPER(CLIENT_APPLICATION),'*QLIKCLOUD*') = 1, dual('QLIK - QCDI',2),
+                          IF(WILDMATCH(UPPER(CLIENT_APPLICATION),'*QCSSNOWFLAKE*', '*QLIK*') > 0, dual('QLIK SENSE',1),
+                              IF(WILDMATCH(UPPER(CLIENT_APPLICATION),'*TALEND*','*STITCHDATA*') > 0, dual('QLIK - TALEND',4),
+                                	IF(WILDMATCH(UPPER(CLIENT_APPLICATION),'*SNOWFLAKE*') = 1, dual('SNOWFLAKE',0),   
+                               dual('OTHER',5)))))))				AS CLIENT_APPLICATION_GROUP
+    ;
+    LOAD 
+          SESSION_ID							AS %KEY_SESSION
+        ,	SESSION_ID
+        ,	CREATED_ON							AS SESSION_CREATED_ON 
+        ,	AUTHENTICATION_METHOD 
+        ,	LOGIN_EVENT_ID						AS %KEY_LOGIN_EVENT
+  //       ,	CLIENT_APPLICATION_VERSION
+  //       ,	CLIENT_APPLICATION_ID
+  //       ,	CLIENT_ENVIRONMENT
+  //       ,	CLIENT_BUILD_ID
+  //       ,	CLIENT_VERSION
+  //       ,	CLOSED_REASON
+        ,	PURGECHAR(CLIENT_APPLICATION, '"')	AS CLIENT_APPLICATION	
+
+    WHERE 
+      EXISTS(%KEY_SESSION, SESSION_ID)
+    ;
+    SELECT 
+        "SESSION_ID",
+        "CREATED_ON",
+        "USER_NAME",
+        "AUTHENTICATION_METHOD",
+        "LOGIN_EVENT_ID",
+        "CLIENT_APPLICATION_VERSION",
+        "CLIENT_APPLICATION_ID",
+        "CLIENT_ENVIRONMENT",
+        "CLIENT_BUILD_ID",
+        "CLIENT_VERSION",
+        "CLOSED_REASON",
+        TO_VARIANT(PARSE_JSON(CLIENT_ENVIRONMENT)):APPLICATION AS CLIENT_APPLICATION
+    FROM 
+        "SNOWFLAKE"."ACCOUNT_USAGE"."SESSIONS"
+    WHERE
+      $(vL.QUERY_HIST_BOUNDARY("CREATED_ON"))
+      ;
+
+
+END SUB;
+///$tab FL - SEC - CREATE FACT
+/*
+
+	Creates the transaction table that is used to simplify and allow for 
+    selections across metrics. There are various aspects within the transaction tables
+    
+    -	LOGINs
+    -   GRANTS
+    -	QUERIES
+    - 
+
+*/
+SUB CREATE_TRANSACTION_FACT_TABLE
+
+TRANSACTION_TABLE:
+LOAD
+	
+  	"EVENT_ID"  	
+  ,	"SESSION_ID"											AS %KEY_SESSION
+  ,	'LOGIN'													AS TRANSACTION_TYPE
+  ,	"EVENT_TIMESTAMP"										AS TRANSACTION_DATE
+  ,	1 														AS TRANSACTION_COUNT
+  ,	"EVENT_TYPE"											AS LOGIN_EVENT_TYPE
+  ,	APPLYMAP('USER_NAME_TO_ID_MAP',"USER_NAME") 			AS %KEY_USER
+  ,	"FIRST_AUTHENTICATION_FACTOR"
+  ,	"SECOND_AUTHENTICATION_FACTOR"
+  ,	"IS_SUCCESS"											AS FLAG_LOGIN_SUCCESS
+  ,	"ERROR_CODE" 											AS LOGIN_ERROR_CODE  
+  ,	"ERROR_MESSAGE" 										AS LOGIN_ERROR_MESSAGE   
+  ;
+SQL 
+SELECT 
+    "L"."EVENT_ID",
+  	"L"."EVENT_TIMESTAMP",
+    "S"."SESSION_ID",
+ 	"L"."EVENT_TYPE",
+  	"L"."USER_NAME",
+  	"L"."CLIENT_IP",
+  	"L"."REPORTED_CLIENT_TYPE",
+  	"L"."REPORTED_CLIENT_VERSION",
+  	"L"."FIRST_AUTHENTICATION_FACTOR",
+  	"L"."SECOND_AUTHENTICATION_FACTOR",
+  	"L"."IS_SUCCESS",
+  	"L"."ERROR_CODE",
+  	"L"."ERROR_MESSAGE",
+  	"L"."RELATED_EVENT_ID"
+  FROM 
+  	SNOWFLAKE."ACCOUNT_USAGE"."LOGIN_HISTORY" "L"
+  LEFT JOIN 
+  	"SNOWFLAKE"."ACCOUNT_USAGE"."SESSIONS" "S"
+  		ON 
+        	"L"."EVENT_ID" = "S"."LOGIN_EVENT_ID"
+  WHERE
+  	$(vL.QUERY_HIST_BOUNDARY("L"."EVENT_TIMESTAMP"))
+    ;
+  
+  
+  
+CONCATENATE (TRANSACTION_TABLE)
+	LOAD 
+      		WAREHOUSE_NAME								AS AGC_WAREHOUSE_NAME
+    	,	DATABASE_ID & '---'							AS %KEY_INVENTORY
+        ,	APPLYMAP('ROLE_NAME_TO_ID_MAP',ROLE_NAME)	AS %KEY_ROLE 
+        ,	APPLYMAP('USER_NAME_TO_ID_MAP',USER_NAME)	AS %KEY_USER
+        ,	APPLICATION									AS AGC_APPLICATION_NAME
+        ,	'AGGREGATED COST' 							AS TRANSACTION_TYPE
+        ,	FLOOR(DATE(DATE#(BILLING_DAY,'YYYY-MM-DD')))AS TRANSACTION_DATE
+        ,	TOTAL_COSTS	
+        ,	TOTAL_QUERIES	
+    FROM [$(CONFIG.QVD_STORE.DAILY_COST_AGGR)](QVD);
+;
+
+
+END SUB  
+///$tab FL - USE - QUERY HIST
+/*
+
+	Loads information about all the Queries in the snowflake environment.
+    This is loaded from the QVD generated at the start of the script and contains 
+    X amount of days based on the CONFIG.QUERY_RETENTION_PERIOD_DAYS variable
+
+*/
+
+SUB EXTARCT_QUERY_HISTORY    
+    TRACE '============================';
+    TRACE 'LOAD QUERY HISTORY FROM QVD';
+    
+    [QUERY_HISTORY]:
+    LOAD
+    		*
+        ,	IF(TOTAL_ELAPSED_TIME_S < 0.1, DUAL('< 0.1 sec', 1),
+        	IF(TOTAL_ELAPSED_TIME_S < 1, DUAL('< 1 sec', 2),
+        	IF(TOTAL_ELAPSED_TIME_S < 5, DUAL('< 5 sec', 3),
+        	IF(TOTAL_ELAPSED_TIME_S < 30, DUAL('5 - 30 sec', 4),
+            IF(TOTAL_ELAPSED_TIME_S < 60, DUAL('30 - 60 sec', 5),
+            IF(TOTAL_ELAPSED_TIME_S < 300, DUAL('1 - 5 min', 6),
+             IF(TOTAL_ELAPSED_TIME_S < 1800, DUAL('5 - 30 min', 7),
+            IF(TOTAL_ELAPSED_TIME_S < 3600, DUAL('30 - 60 min', 8),
+            IF(TOTAL_ELAPSED_TIME_S < 7200, DUAL('1 - 2 hrs', 9), DUAL('2 hrs <', 10)))))))))) 	AS QUERY_TIME_CATEGORY 
+        ,	%KEY_WAREHOUSE&'-'&%KEY_SESSION&'-'&%KEY_INVENTORY&'-'&NUM(QUERY_START_DATE) 		AS %KEY_TRANSACTION_TO_QUERY
+    
+    ;
+    LOAD 
+        //    QUERY_ID 
+        	%KEY_WAREHOUSE_SESSION
+        ,	%KEY_QUERY
+        ,	%KEY_QUERY AS QUERY_ID
+        //,	QUERY_TEXT
+        ,	DATABASE_ID 								AS %KEY_DATABASE
+        ,	SCHEMA_ID
+        ,	DATABASE_ID & '-' & SCHEMA_ID & '--' 		AS %KEY_INVENTORY 
+        ,	QUERY_TYPE
+        ,	SESSION_ID									AS %KEY_SESSION
+        ,	APPLYMAP('USER_NAME_TO_ID_MAP', USER_NAME) 	AS %KEY_USER
+        ,	APPLYMAP('ROLE_NAME_TO_ID_MAP', ROLE_NAME)  AS %KEY_ROLE        
+        ,	%KEY_WAREHOUSE
+        //,	WAREHOUSE_ID
+        ,	WAREHOUSE_NAME
+        ,	WAREHOUSE_SIZE
+        ,	WAREHOUSE_TYPE
+//        ,	QUERY_TAG
+        ,	EXECUTION_STATUS
+        //,	ERROR_CODE
+        //,	ERROR_MESSAGE
+        ,	QUERY_START_TIME						    AS QUERY_START_TIME
+        ,	DATE(FLOOR(QUERY_START_TIME), 'YYYY-MM-DD')	AS QUERY_START_DATE
+        ,	QUERY_END_TIME								AS QUERY_END_TIME
+//        ,	QUERY_RUN_TIME							AS TOTAL_ELAPSED_TIME_MS
+		,	(QUERY_RUN_TIME /1000)					AS TOTAL_ELAPSED_TIME_S
+//        ,	(QUERY_RUN_TIME /60000)					AS TOTAL_ELAPSED_TIME_M
+//        ,	CREDITS_USED_CLOUD_SERVICES					AS QUERY_CREDITS_USED_CLOUD_SERVICES
+//         ,	TRANSACTION_ID
+//        ,	NEXT_QUERY_START_TIME
+//          ,	TIME_BETWEEN_NEXT_QUERY_SEC 				AS TIME_BETWEEN_NEXT_QUERY
+        ,	BYTES_SPILLED_TO_LOCAL_STORAGE
+        ,	BYTES_SPILLED_TO_REMOTE_STORAGE
+//        ,	BYTES_SPILLED_TO_LOCAL_STORAGE + BYTES_SPILLED_TO_REMOTE_STORAGE 				AS TOTAL_BYTES_SPILLED
+        ,   IF((BYTES_SPILLED_TO_LOCAL_STORAGE + BYTES_SPILLED_TO_REMOTE_STORAGE) > 0,1,0)  AS FLAG_QUERY_BYTES_FLAG
+//        ,	PERCENTAGE_SCANNED_FROM_CACHE
+        ,	IF(PERCENTAGE_SCANNED_FROM_CACHE > 0,1,0) 										AS FLAG_QUERY_USED_CACHE
+        
+        FROM [$(CONFIG.QVD_STORE.EVENT_QUERY)](QVD);
+   
+    
+END SUB;
+
+///$tab FL - USE - WH EVENTS
+/*
+
+	Loads information about all the Warehouse Events in the snowflake environment.
+    This is loaded from the QVD generated at the start of the script and contains 
+    X amount of days based on the CONFIG.WAREHOUSE_RETENTION_PERIOD_DAYS variable
+
+*/
+
+SUB EXTRACT_WH_EVENTS
+    [WAREHOUSE_EVENTS]:
+    
+    LOAD *, %KEY_WAREHOUSE AS WAREHOUSE_ID FROM [$(CONFIG.QVD_STORE.EVENT_WAREHOUSE)](QVD);
+
+END SUB
+///$tab FL - COS - DAILY COST
+SUB EXTRACT_DAILY_COSTS
+COSTS_DAILY_tmp:
+    LOAD
+            USAGE_DATE	 																AS COST_DATE
+        , 	'STORAGE'																	AS SERVICE_TYPE_CATEGORY
+        ,	STORAGE_BYTES 
+        ,	STAGE_BYTES 
+        ,	FAILSAFE_BYTES 
+        ,	HYBRID_TABLE_STORAGE_BYTES
+        ;
+    SELECT 
+        "USAGE_DATE",
+        "STORAGE_BYTES",
+        "STAGE_BYTES",
+        "FAILSAFE_BYTES",
+        "HYBRID_TABLE_STORAGE_BYTES"
+    FROM 
+        "SNOWFLAKE"."ACCOUNT_USAGE"."STORAGE_USAGE";	
+
+
+    CONCATENATE (COSTS_DAILY_tmp)
+    LOAD
+            "SERVICE_TYPE"																AS COMPUTE_SERVICE_TYPE
+        , 	'COMPUTE'																	AS SERVICE_TYPE_CATEGORY
+        ,	"USAGE_DATE"																AS COST_DATE
+        ,	"CREDITS_USED_COMPUTE"
+        ,	"CREDITS_USED_CLOUD_SERVICES"
+        ,	"CREDITS_USED"																AS TOTAL_CREDITS_USED
+        ,	"CREDITS_ADJUSTMENT_CLOUD_SERVICES"
+        ,	"CREDITS_BILLED"
+    ;
+    SELECT 
+        "SERVICE_TYPE",
+        "USAGE_DATE",
+        "CREDITS_USED_COMPUTE",
+        "CREDITS_USED_CLOUD_SERVICES",
+        "CREDITS_USED",
+        "CREDITS_ADJUSTMENT_CLOUD_SERVICES",
+        "CREDITS_BILLED"
+    FROM 
+        "SNOWFLAKE"."ACCOUNT_USAGE"."METERING_DAILY_HISTORY"
+        ;
+END SUB
+///$tab FL - COS - RATE SHEET
+/*
+
+	Contains infomration about your contract and rates that you are charged.
+
+*/
+
+SUB EXTRACT_RATE_SHEET
+    [RATE_SHEET_DAILY]:
+    LOAD 
+        *;
+    SELECT 
+        "DATE",
+        "ORGANIZATION_NAME",
+        "CONTRACT_NUMBER",
+        "ACCOUNT_NAME",
+        "ACCOUNT_LOCATOR",
+        "REGION",
+        "SERVICE_LEVEL",
+        "USAGE_TYPE",
+        "CURRENCY",
+        "EFFECTIVE_RATE",
+        "SERVICE_TYPE"
+    FROM 
+        "SNOWFLAKE"."ORGANIZATION_USAGE"."RATE_SHEET_DAILY"
+        ;
+END SUB
+///$tab FL - COS - HOURLY COMPUTE 
+    
+
+SUB EXTRACT_HOURLY_COMPUTE
+    HOURLY_COMPUTE_tmp:
+    LOAD 
+            FLOOR(START_TIME) 																					AS %KEY_COST_DATE
+        ,   TIME(START_TIME - FLOOR(START_TIME),'hh:mm:ss')														AS HOURLY_COMPUTE_START_TIME					
+        ,   TIME(END_TIME - FLOOR(END_TIME),'hh:mm:ss')															AS HOURLY_COMPUTE_END_TIME
+        ,	TIME(START_TIME - FLOOR(START_TIME),'hh:mm:ss') & '-' & TIME(END_TIME - FLOOR(END_TIME),'hh:mm:ss') AS COMPUTE_HOUR
+        ,	WAREHOUSE_ID 																						AS %KEY_WAREHOUSE
+        ,	CREDITS_USED 																						AS CREDITS_USED
+        ,	CREDITS_USED_COMPUTE 																				AS USED_COMPUTE
+        ,	CREDITS_USED_CLOUD_SERVICES																			AS CREDITS_USED_CLOUD_SERVICES
+        , 	'WAREHOUSE_METERING' 																				AS SERVICE_TYPE
+        ;
+    SELECT 
+        "START_TIME",
+        "END_TIME",
+        "WAREHOUSE_ID",
+        "WAREHOUSE_NAME",
+        "CREDITS_USED",
+        "CREDITS_USED_COMPUTE",
+        "CREDITS_USED_CLOUD_SERVICES"
+    FROM 
+        "SNOWFLAKE"."ACCOUNT_USAGE"."WAREHOUSE_METERING_HISTORY"
+    ;
+
+
+
+    CONCATENATE (HOURLY_COMPUTE_tmp)
+    LOAD 
+            FLOOR(START_TIME) 																					AS %KEY_COST_DATE
+        ,   TIME(START_TIME - FLOOR(START_TIME),'hh:mm:ss')														AS HOURLY_COMPUTE_START_TIME					
+        ,   TIME(END_TIME - FLOOR(END_TIME),'hh:mm:ss')															AS HOURLY_COMPUTE_END_TIME
+        ,	TIME(START_TIME - FLOOR(START_TIME),'hh:mm:ss') & '-' & TIME(END_TIME - FLOOR(END_TIME),'hh:mm:ss') AS COMPUTE_HOUR
+        ,	CREDITS_USED 																						AS CREDITS_USED
+        ,	TASK_ID 																							AS %KEY_TASK 
+        ,	TASK_NAME
+        //,	DATABASE_ID & '-' & SCHEMA_ID & '--'																AS %KEY_INVENTORY_COMPOUND
+         , 	'SERVERLESS_TASK' 																					AS SERVICE_TYPE
+        ;
+    SELECT 
+        "START_TIME",
+        "END_TIME",
+        "CREDITS_USED",
+        "TASK_ID",
+        "TASK_NAME",
+        "SCHEMA_ID",
+        "SCHEMA_NAME",
+        "DATABASE_ID",
+        "DATABASE_NAME",
+        "INSTANCE_ID"
+    FROM 
+        "SNOWFLAKE"."ACCOUNT_USAGE"."SERVERLESS_TASK_HISTORY"
+    ;
+
+
+
+    HOURLY_COMPUTE:
+    LOAD
+            %KEY_COST_DATE & '-' & SERVICE_TYPE 																				AS %KEY_DATE_SERVICE_TYPE
+        ,	%KEY_WAREHOUSE & '-' & %KEY_COST_DATE & '-' & HOUR(HOURLY_COMPUTE_START_TIME) & '-' & HOUR(HOURLY_COMPUTE_END_TIME)	AS %KEY_WAREHOUSE_DATE_HOUR
+        ,	*
+    RESIDENT
+        HOURLY_COMPUTE_tmp
+    ;
+
+    DROP TABLES 
+            HOURLY_COMPUTE_tmp
+        ;
+
+    DROP FIELDS 
+            %KEY_COST_DATE
+        ,	SERVICE_TYPE
+        ,	%KEY_WAREHOUSE
+            FROM
+                HOURLY_COMPUTE
+        ;
+END SUB 
+
+///$tab FL - COS - CONTRACT
+/*
+
+
+
+*/
+
+SUB EXTRACT_CONTRACT_ITEMS
+
+[CONTRACT_ITEMS]:	
+LOAD 
+		NUM(START_DATE) & '-' & NUM(END_DATE) 	AS %KEY_CONTRACT_PERIOD
+	,	ORGANIZATION_NAME
+    ,	ACCOUNT_NAME
+	,	CONTRACT_NUMBER 
+	,	START_DATE 								AS CONTRACT_START_DATE
+	,	END_DATE 								AS CONTRACT_END_DATE
+	,	EXPIRATION_DATE 						AS CONTRACT_EXPIRATION_DATE
+	,	CONTRACT_ITEM 
+	,	CURRENCY 								AS CONTRACT_CURRENCY
+	,	AMOUNT 									AS CONTRACT_AMOUNT
+	,	CONTRACT_MODIFIED_DATE
+    ;
+SELECT 
+	"ORGANIZATION_NAME",
+	"CONTRACT_NUMBER",
+	"START_DATE",	
+    CURRENT_ACCOUNT_NAME() AS ACCOUNT_NAME,
+	"END_DATE",
+	"EXPIRATION_DATE",
+	"CONTRACT_ITEM",
+	"CURRENCY",
+	"AMOUNT",
+	"CONTRACT_MODIFIED_DATE"
+FROM "SNOWFLAKE"."ORGANIZATION_USAGE"."CONTRACT_ITEMS";
+
+
+// Concatenate(CONTRACT_ITEMS)	
+// LOAD
+// 		NUM(DATE#(CONTRACT_START_DATE, 'DD/MM/YYYY')) & '-' & NUM(DATE#(CONTRACT_END_DATE, 'DD/MM/YYYY'))		AS %KEY_CONTRACT_PERIOD
+// 	,	ORGANIZATION_NAME 
+// 	,	CONTRACT_NUMBER 
+// 	,	DATE#(CONTRACT_START_DATE, 'DD/MM/YYYY') 																AS CONTRACT_START_DATE
+// 	,	DATE#(CONTRACT_END_DATE, 'DD/MM/YYYY')																	AS CONTRACT_END_DATE
+// 	,	CONTRACT_EXPIRATION_DATE
+// 	,	CONTRACT_ITEM 
+// 	,	CONTRACT_CURRENCY
+// 	,	CONTRACT_AMOUNT
+//     ,	ACCOUNT_NAME
+// 	,	Timestamp#(CONTRACT_MODIFIED_DATE, 'DD/MM/YYYY hh:mm:ss') 												AS CONTRACT_MODIFIED_DATE
+// ;
+// LOAD * INLINE [
+// %KEY_CONTRACT_PERIOD,	ORGANIZATION_NAME,	ACCOUNT_NAME,	CONTRACT_NUMBER,	CONTRACT_START_DATE,	CONTRACT_END_DATE,	CONTRACT_EXPIRATION_DATE,	CONTRACT_ITEM,	CONTRACT_CURRENCY,	CONTRACT_AMOUNT,	CONTRACT_MODIFIED_DATE
+// 44957-45321,			OVBTLOZ,			WR20569,		123456, 			31/03/2023,				30/03/2024,			-,							Capacity, 		USD,				10000,				02/09/2022  04:30:51
+// 44957-45321,			OVBTLOZ,			WR20569,		123456, 			31/03/2023,				30/03/2024,			-,							Capacity, 		USD,				10000,				02/09/2022  04:30:51
+
+
+// ];
+
+END SUB
+///$tab --TRANSFROM--
+
+///$tab TR - USE - CREATE WH
+/*
+
+	Creates the Warehouse table from the Query History. Snowflake does not have a 'Warehouse' Table
+    so we can look back in time in the Query History & Generate a list of Warehouses with sizes and info over time
+
+*/
+SUB CREATE_WAREHOUSE_TABLE
+
+
+
+	WAREHOUSES_tmp:
+    LOAD DISTINCT
+            %KEY_WAREHOUSE & '-' & MIN(QUERY_START_TIME) & '-' & MAX(QUERY_END_TIME) AS %KEY_WAREHOUSE_PERIOD
+        ,	%KEY_WAREHOUSE AS WAREHOUSE_ID
+        ,	WAREHOUSE_NAME
+        ,	WAREHOUSE_SIZE 																AS WAREHOUSE_SIZE_TXT
+        ,	WAREHOUSE_TYPE
+        ,	MIN(QUERY_START_TIME) 	AS WH_START_PERIOD
+        ,	MAX(QUERY_END_TIME) 	AS WH_END_PERIOD 
+    RESIDENT
+        QUERY_HISTORY    
+    WHERE
+        NOT ISNULL(WAREHOUSE_NAME)
+        AND
+        NOT ISNULL(%KEY_WAREHOUSE)
+        AND
+        NOT ISNULL(WAREHOUSE_TYPE)
+        AND
+        NOT ISNULL(WAREHOUSE_SIZE)
+    GROUP By 
+            %KEY_WAREHOUSE
+        ,	WAREHOUSE_NAME
+        ,	WAREHOUSE_SIZE
+        ,	WAREHOUSE_TYPE
+        ;
+        
+        
+	left join (WAREHOUSES_tmp)
+    Load	
+    		WAREHOUSE_ID
+          ,	MAX(WH_END_PERIOD)  	AS WH_END_PERIOD	   
+    	  , 1						AS CURRENT_WAREHOUSE
+    RESIDENT
+    	WAREHOUSES_tmp
+	GROUP BY
+    	WAREHOUSE_ID
+        ;
+    
+    WAREHOUSES:
+    load
+    		*
+		,	if(CURRENT_WAREHOUSE =1, 1, 0) AS FLAG_CURRENT_WAREHOUSE
+        ,	DUAL(WAREHOUSE_SIZE_TXT, APPLYMAP('WAREHOUSE_SIZE_MAPPING_LOAD', WAREHOUSE_SIZE_TXT)) 	AS WH_SIZE
+    RESIDENT
+    	WAREHOUSES_tmp
+    ;
+    
+    
+  	DROP TABLE
+    	WAREHOUSES_tmp;
+        
+    DROP FIELD 	
+    		CURRENT_WAREHOUSE
+        ,	WAREHOUSE_SIZE_TXT
+    ;
+    
+END SUB
+///$tab TR - INV - BRIDGE
+/*
+
+	The Inventory Bridge acts as a way to link to and from the main transaction table to inventory Item
+    This allows us to filter on a privledge and find all the inventory items associated to it as an example.
+
+*/
+SUB TRANSFORM_INVENTORY_BRIDGE
+  INVENTORY_BRIDGE_tmp:
+  LOAD 
+          %KEY_DATABASE	
+      ,	%KEY_SCHEMA
+      ,	%KEY_TABLE		 
+      ,	%KEY_COLUMN
+      ,	COLUMN_CREATED_DATE		AS INVENTORY_CREATED_DATE
+      ,	'COLUMN'				AS INVENTORY_CREATED_DATE_TYPE
+  RESIDENT
+      COLUMNS
+  ;
+
+
+
+
+  CONCATENATE (INVENTORY_BRIDGE_tmp)
+  LOAD DISTINCT
+          %KEY_DATABASE	
+      ,	%KEY_SCHEMA
+      ,	%KEY_TABLE
+      ,	TABLE_CREATED_DATE 	AS INVENTORY_CREATED_DATE
+      ,	'TABLE'				AS INVENTORY_CREATED_DATE_TYPE
+  RESIDENT
+      TABLES
+  ;
+
+
+
+  CONCATENATE (INVENTORY_BRIDGE_tmp)
+  LOAD DISTINCT
+          %KEY_DATABASE	
+      ,	%KEY_SCHEMA
+      ,	SCHEMA_CREATED_DATE		AS INVENTORY_CREATED_DATE
+      ,	'SCHEMA'				AS INVENTORY_CREATED_DATE_TYPE 
+  RESIDENT
+      SCHEMAS
+  ;
+
+  CONCATENATE (INVENTORY_BRIDGE_tmp)
+  LOAD DISTINCT
+          %KEY_DATABASE
+      ,	DATABASE_CREATED_DATE		AS INVENTORY_CREATED_DATE
+      ,	'DATABASE'					AS INVENTORY_CREATED_DATE_TYPE	
+  RESIDENT
+      DATABASES
+  ;
+
+
+  INV_BRIDGE:
+  LOAD 
+          %KEY_DATABASE	
+      ,	%KEY_SCHEMA
+      ,	%KEY_TABLE		 
+      ,	%KEY_COLUMN
+      ,	%KEY_DATABASE & '-' & %KEY_SCHEMA & '-' & %KEY_TABLE & '-' & %KEY_COLUMN 	AS %KEY_INVENTORY
+      ,	INVENTORY_CREATED_DATE
+      ,	INVENTORY_CREATED_DATE_TYPE
+  RESIDENT
+      INVENTORY_BRIDGE_tmp
+  ;   
+
+
+  DROP TABLE INVENTORY_BRIDGE_tmp;
+
+  DROP FIELDS
+          %KEY_DATABASE
+      ,   %KEY_SCHEMA
+      ,	%KEY_TABLE FROM COLUMNS
+      ;
+
+  DROP FIELDS
+          %KEY_DATABASE
+      ,   %KEY_SCHEMA FROM TABLES
+      ;
+
+  DROP FIELDS
+          %KEY_DATABASE FROM SCHEMAS
+      ;
+      
+END SUB   
+///$tab TR - INV - LAST USED
+/*
+
+	Adds Columns to the database table to see when we load queried something from a database
+    This is to see what databases are 'unused'
+
+*/
+SUB TRANSFORM_INV_LASTUSED
+
+
+    LEFT JOIN (DATABASES)
+    LOAD
+                DATABASE_ID 							AS %KEY_DATABASE
+            ,	DATE(FLOOR(MAX_END_TIME)) 				AS DATABASE_LAST_SELECT_QUERY
+            ,	TODAY(1) - FLOOR(MAX_END_TIME) 			AS DATABASE_LAST_SELECT_QUERY_DAYS
+    ;
+    SELECT 
+          "DATABASE_ID",
+          MAX("END_TIME") AS MAX_END_TIME
+	FROM 
+		"SNOWFLAKE"."ACCOUNT_USAGE"."QUERY_HISTORY"
+	WHERE
+		QUERY_TYPE = 'SELECT'
+	GROUP BY
+		"DATABASE_ID"
+	;
+
+
+
+    LEFT JOIN (SCHEMAS)
+    LOAD
+                SCHEMA_ID 								AS %KEY_SCHEMA
+            ,	DATE(FLOOR(MAX_END_TIME)) 				AS SCHEMA_LAST_SELECT_QUERY
+            ,	TODAY(1) - FLOOR(MAX_END_TIME) 			AS SCHEMA_LAST_SELECT_QUERY_DAYS
+    ;
+    SELECT 
+          "SCHEMA_ID",
+          MAX("END_TIME") AS MAX_END_TIME
+	FROM 
+		"SNOWFLAKE"."ACCOUNT_USAGE"."QUERY_HISTORY"
+	WHERE
+		QUERY_TYPE = 'SELECT'
+	GROUP BY
+		"SCHEMA_ID"
+	;
+    
+    
+    
+ 
+
+
+END SUB
+///$tab TR - SEC - GRANTS
+/*
+
+	The RBAC grants are built in this step using the HierarchyBelongsTo function in Qlik
+    This allows us to build a list of User to Role, but also the inhertied roles to get a 
+    full list of what they can access in snowflake.
+
+*/
+
+SUB TRANSFORM_NODES_GRANTS
+   	
+  /*Load in the roles both ways and perform a hierarcyBelongsTo on only the role to roles grants to get the inheritance tree.*/
+  [ROLES_TO_ROLES]:
+        HierarchyBelongsTo(EMPLOYEE_ID,MANAGER_ID,EMP_2,AncestorID,AncestorName,DepthDiff)
+        LOAD DISTINCT *;
+        SELECT DISTINCT
+                GRANTEE_NAME            AS EMPLOYEE_ID      --HAS THIS ROLE
+            ,	GRANTEE_NAME			AS EMP_2
+            ,   NAME    AS MANAGER_ID       --ROLE
+            ,   'ROLE-ROLE'     AS NODE_TYPE
+        FROM "SNOWFLAKE"."ACCOUNT_USAGE"."GRANTS_TO_ROLES" 
+                WHERE 1=1
+                    AND DELETED_ON IS NULL
+                    AND GRANTED_ON = 'ROLE' 
+                    AND PRIVILEGE = 'USAGE'  
+        UNION ALL 
+
+        SELECT DISTINCT
+                NAME            AS EMPLOYEE_ID      --HAS THIS ROLE
+            ,	NAME			AS EMP_2
+            ,   GRANTEE_NAME    AS MANAGER_ID       --ROLE
+            ,   'ROLE-ROLE'     AS NODE_TYPE
+        FROM "SNOWFLAKE"."ACCOUNT_USAGE"."GRANTS_TO_ROLES" 
+                WHERE 1=1
+                    AND DELETED_ON IS NULL
+                    AND GRANTED_ON = 'ROLE' 
+                    AND PRIVILEGE = 'USAGE'  
+     ;
+
+    //Relabel and remove the rows that have a partent = child.
+    [OUTPUT]:LOAD DISTINCT
+            AncestorID AS THIS_ROLE 
+        ,	EMPLOYEE_ID AS ACCESS_TO
+    RESIDENT [ROLES_TO_ROLES]
+    WHERE AncestorID <> EMPLOYEE_ID; //This removes the first levels where it joins to itself. 
+
+    DROP TABLE ROLES_TO_ROLES;
+
+  	//Load the roles users have direct grants to.
+  	NoConcatenate [USERS_TO_ROLES]:
+
+    LOAD DISTINCT EMPLOYEE_ID, MANAGER_ID AS THIS_ROLE;
+    SELECT DISTINCT
+
+    		GRANTEE_NAME  AS EMPLOYEE_ID     --USER
+    	,   ROLE          AS MANAGER_ID      --HAS THIS ROLE
+    	,   'USER-ROLE'   AS NODE_TYPE
+
+    	FROM "SNOWFLAKE"."ACCOUNT_USAGE"."GRANTS_TO_USERS"
+    	WHERE 1=1
+   	 	AND DELETED_ON IS NULL;
+
+  //Get Our users to roles and join on the output table to find all the roles the user can access, directly or via inheritance.
+  [ALL_CONNECTS]:
+  NOCONCATENATE 	LOAD * RESIDENT [USERS_TO_ROLES];
+      LEFT JOIN   	LOAD * RESIDENT OUTPUT;
+
+  DROP TABLE USERS_TO_ROLES, OUTPUT;
+
+
+  [HIERARCY_OUTPUT]:LOAD 
+          	APPLYMAP('USER_NAME_TO_ID_MAP', EMPLOYEE_ID) AS %KEY_USER
+      , 	APPLYMAP('ROLE_NAME_TO_ID_MAP', IF(ISNULL(ACCESS_TO),THIS_ROLE,ACCESS_TO)) AS %KEY_ROLE 
+  RESIDENT ALL_CONNECTS;
+  DROP TABLE ALL_CONNECTS;
+
+	//Join on the Privs to Inventory
+    [TRANSACTION_PRIVS]:
+    LOAD DISTINCT %KEY_ROLE, %KEY_USER, 'PRIVS' AS TRANSACTION_TYPE RESIDENT HIERARCY_OUTPUT;
+    LEFT JOIN LOAD DISTINCT %KEY_ROLE, %KEY_INVENTORY RESIDENT [PRIVS]; 
+
+	//Drop stuff we dont need.
+    DROP TABLE HIERARCY_OUTPUT;
+    DROP FIELD %KEY_ROLE, %KEY_INVENTORY FROM PRIVS;
+
+	//Join the transactions on
+   CONCATENATE (TRANSACTION_TABLE) 
+   LOAD DISTINCT
+ 
+        	%KEY_USER
+        ,	TRANSACTION_TYPE
+        ,	%KEY_ROLE
+        ,	%KEY_INVENTORY
+   RESIDENT [TRANSACTION_PRIVS];
+   DROP TABLE [TRANSACTION_PRIVS];
+    
+END SUB
+///$tab TR - COS - DAILY COSTS
+SUB TRANSFORM_DAILY_COSTS
+
+    LEFT JOIN (COSTS_DAILY_tmp)
+    LOAD 
+            DATE 												AS COST_DATE
+        ,	MAX(IF(LEFT(USAGE_TYPE, 7) = 'overage' , 1,0))		AS FLAG_STORAGE_OVERAGE
+        ,	MAX(EFFECTIVE_RATE) 								AS STORAGE_EFFECTIVE_RATE
+    RESIDENT
+        [RATE_SHEET_DAILY]
+    WHERE
+        SERVICE_TYPE = 'STORAGE'
+    GROUP BY 
+            DATE
+        ,	USAGE_TYPE
+        ;
+
+    LEFT JOIN (COSTS_DAILY_tmp)
+    LOAD 
+            DATE 											AS COST_DATE
+        ,	CURRENCY
+        ,	MAX(IF(LEFT(USAGE_TYPE, 7) = 'overage' , 1,0))	AS FLAG_COMPUTE_OVERAGE //--> this need looking at 
+        ,	MAX(EFFECTIVE_RATE) 							AS COMPUTE_EFFECTIVE_RATE
+    RESIDENT
+        [RATE_SHEET_DAILY]
+    WHERE
+        //SERVICE_TYPE = 'COMPUTE'
+        SERVICE_TYPE <> 'STORAGE' //Changed Logic here, as it broke? 
+    GROUP BY 
+            DATE 
+        ,	CURRENCY
+        ;
+
+// AWCHANGE - quite a lot below this
+	// Placeholder we'll concat onto
+	COSTS_DAILY_tmp2: LOAD * INLINE [ COST_DATE ];
+
+	// Load anything that isn't Warehouse that we're going to break down	
+	CONCATENATE (COSTS_DAILY_tmp2)
+    LOAD
+    		*
+		,	COMPUTE_SERVICE_TYPE	AS SERVICE_TYPE
+	RESIDENT
+    		COSTS_DAILY_tmp
+	WHERE
+    		SERVICE_TYPE_CATEGORY='COMPUTE'
+	AND
+    		COMPUTE_SERVICE_TYPE<>'WAREHOUSE_METERING'
+    ;
+
+	// Basic Compute Credits Used
+	CONCATENATE (COSTS_DAILY_tmp2)
+    LOAD
+    		*
+        ,	COMPUTE_SERVICE_TYPE	AS SERVICE_TYPE
+        ,	CREDITS_USED_COMPUTE	AS DAILY_CREDITS_USED
+	RESIDENT
+    		COSTS_DAILY_tmp
+	WHERE
+    		SERVICE_TYPE_CATEGORY='COMPUTE'
+	AND
+    		COMPUTE_SERVICE_TYPE='WAREHOUSE_METERING'
+    ;
+
+	// Cloud Services Credits Used
+	CONCATENATE (COSTS_DAILY_tmp2)
+    LOAD
+    		*
+        ,	'CLOUD_SERVICES'												AS SERVICE_TYPE
+        ,	CREDITS_USED_CLOUD_SERVICES + CREDITS_ADJUSTMENT_CLOUD_SERVICES	AS DAILY_CREDITS_USED
+	RESIDENT
+    		COSTS_DAILY_tmp
+	WHERE
+    		SERVICE_TYPE_CATEGORY='COMPUTE'
+	AND
+    		COMPUTE_SERVICE_TYPE='WAREHOUSE_METERING'
+    ;
+
+
+    // Don't need these any more
+    DROP FIELDS COMPUTE_SERVICE_TYPE;
+
+    // Storage Service Types to loop through
+    STORAGE_SERVICE_TYPES: LOAD * INLINE [
+    	Storage Service Type
+        STORAGE
+        STAGE
+        FAILSAFE
+        HYBRID_TABLE_STORAGE
+	];
+
+
+	for each v.SST in FieldValueList('Storage Service Type')
+    
+    	CONCATENATE (COSTS_DAILY_tmp2)
+        LOAD
+        		*
+     		, 	'$(v.SST)'		AS SERVICE_TYPE
+        	,	$(v.SST)_BYTES 	AS BYTES
+		RESIDENT
+        	COSTS_DAILY_tmp
+		WHERE
+        	SERVICE_TYPE_CATEGORY='STORAGE'
+        ;
+	next v.SST
+    
+    // Don't need these any more
+    DROP TABLES
+    		STORAGE_SERVICE_TYPES
+		,	COSTS_DAILY_tmp;
+    LET v.SST=;
+    
+
+    COSTS_DAILY:
+    NOCONCATENATE
+    LOAD
+            *
+        ,	NUM(COST_DATE) 																						AS %KEY_COST_DATE
+        ,	NUM(COST_DATE) & '-' & SERVICE_TYPE																	AS %KEY_DATE_SERVICE_TYPE
+// 		,	(TOTAL_BYTES / 1000000000000) 																		AS TOTAL_TERABYTES
+        ,	( BYTES / 1024 / 1024 / 1024 / 1024 )																AS TERABYTES
+        ,	IF(SERVICE_TYPE_CATEGORY = 'STORAGE',
+//             	((TOTAL_BYTES / 1000000000000) * STORAGE_EFFECTIVE_RATE) / DAY(MONTHEND(COST_DATE)), 										
+                (( BYTES / 1024 / 1024 / 1024 / 1024 ) * STORAGE_EFFECTIVE_RATE) / DAY(MONTHEND(COST_DATE)), 										
+                DAILY_CREDITS_USED * COMPUTE_EFFECTIVE_RATE )															AS COST
+//     	,	CREDITS_USED_COMPUTE * COMPUTE_EFFECTIVE_RATE 														AS COMPUTE_COST
+//     	,	(CREDITS_USED_CLOUD_SERVICES + CREDITS_ADJUSTMENT_CLOUD_SERVICES) * COMPUTE_EFFECTIVE_RATE 			AS CLOUD_SERVICES_COMPUTE_COST
+
+    RESIDENT 
+        COSTS_DAILY_tmp2
+    ;
+
+
+
+    DROP TABLES 
+        [RATE_SHEET_DAILY]
+    ,	COSTS_DAILY_tmp2
+    ;
+
+
+    DROP FIELDS
+            "CREDITS_USED_COMPUTE"
+        ,	"CREDITS_USED_CLOUD_SERVICES"
+        FROM
+            COSTS_DAILY
+        ;
+        
+        
+        
+        
+END SUB 
+ 
+///$tab TR - COST - WH SESS JOIN
+SUB TRANSFROM_JOIN_HOURLY_WH_COST_TO_WH_SESSION
+    
+    
+    WAREHOUSE_SESSIONS_tmp: 
+    LOAD 
+    		*
+        ,	FLOOR(START_EVENT_DATETIME) AS START_EVENT_DATE
+        ,	FLOOR(END_EVENT_DATETIME) AS END_EVENT_DATE
+        ,	FLOOR(START_EVENT_DATETIME) 																AS RESUME_DATE
+    	,   TIME(START_EVENT_DATETIME - FLOOR(START_EVENT_DATETIME),'hh:mm:ss')   						AS RESUME_TIME
+    	,   HOUR(TIME(START_EVENT_DATETIME - FLOOR(START_EVENT_DATETIME),'hh:mm:ss'))					AS RESUME_HOUR
+		,	FLOOR(END_EVENT_DATETIME) 																	AS SUSPEND_DATE
+    	,   TIME(END_EVENT_DATETIME - FLOOR(END_EVENT_DATETIME),'hh:mm:ss')   							AS SUSPEND_TIME
+    	,   HOUR(TIME(END_EVENT_DATETIME - FLOOR(END_EVENT_DATETIME),'hh:mm:ss'))						AS SUSPEND_HOUR
+    RESIDENT 
+    	WAREHOUSE_EVENTS
+        ; 
+
+
+
+
+    HOUR_TABLE:
+        LOAD
+            0 + (ROWNO()-1) AS HOUR
+            //TIME(TIME#('00:00:00', 'hh:mm:ss') + ((ROWNO()-1)/24)) AS HOURS
+        AUTOGENERATE 24;    
+
+    MIN_DATE:
+        LOAD MIN(START_EVENT_DATE) AS MIN_DATE RESIDENT WAREHOUSE_SESSIONS_tmp;
+
+    LET vL.MIN_DATE = PEEK('MIN_DATE',0,'MIN_DATE'); 
+    LET vL.TODAY = NUM(TODAY());
+    DROP TABLE 
+        MIN_DATE
+        ;
+
+    DAY_TABLE:
+        LOAD
+                $(vL.MIN_DATE) + ROWNO() -1 AS DAY
+        AUTOGENERATE 
+            $(vL.TODAY) - $(vL.MIN_DATE) +1 
+            ;	
+
+
+    LEFT JOIN (WAREHOUSE_SESSIONS_tmp)
+    INTERVALMATCH (DAY)
+    LOAD DISTINCT
+            RESUME_DATE
+       ,	SUSPEND_DATE
+    RESIDENT
+        WAREHOUSE_SESSIONS_tmp
+    ;    
+
+
+
+    WAREHOUSE_SESSIONS_tmp2:
+    LOAD
+            *
+        ,	IF(DAY > RESUME_DATE, 0, RESUME_HOUR) AS START_HOUR
+        ,	IF(DAY < SUSPEND_DATE, 23, SUSPEND_HOUR) AS END_HOUR
+    RESIDENT
+        WAREHOUSE_SESSIONS_tmp
+    ;
+
+
+    DROP TABLE
+        WAREHOUSE_SESSIONS_tmp
+    ;
+
+    LEFT JOIN (WAREHOUSE_SESSIONS_tmp2)
+    INTERVALMATCH (HOUR)
+    LOAD DISTINCT
+            START_HOUR
+        ,	END_HOUR
+    RESIDENT
+        WAREHOUSE_SESSIONS_tmp2
+    ;
+
+
+    DROP TABLES
+            HOUR_TABLE
+        ,	DAY_TABLE
+        ;
+
+
+    WAREHOUSE_SESSION_CREDITS_LINK_tmp:
+    LOAD
+            *
+       ,	TIME(SESSION_HOUR_END_TIME - SESSION_HOUR_START_TIME, 'hh:mm:ss')																						AS ELAPSED_TIME
+       ,	SECOND(TIME(SESSION_HOUR_END_TIME - SESSION_HOUR_START_TIME, 'hh:mm:ss')) 
+            + (MINUTE(TIME(SESSION_HOUR_END_TIME - SESSION_HOUR_START_TIME, 'hh:mm:ss')) * 60)
+            + (HOUR(TIME(SESSION_HOUR_END_TIME - SESSION_HOUR_START_TIME, 'hh:mm:ss')) * 3600) 																	AS ELAPSED_TIME_SECOND
+    ;
+    LOAD
+            //%KEY_WAREHOUSE_SESSION
+            *
+        ,   WAREHOUSE_ID & '-' & DAY & '-' & HOUR  & '-' & (HOUR + 1) 																	AS %KEY_WAREHOUSE_DATE_HOUR
+        , 	IF(TIME#(HOUR, 'hh') < RESUME_TIME AND RESUME_DATE = DAY, RESUME_TIME, TIME(TIME#(HOUR, 'hh'), 'hh:mm:ss')) 				AS SESSION_HOUR_START_TIME
+        ,	IF(TIME#(HOUR + 1, 'hh') > SUSPEND_TIME AND SUSPEND_DATE = DAY, SUSPEND_TIME, TIME(TIME#(HOUR + 1, 'hh'), 'hh:mm:ss')) 		AS SESSION_HOUR_END_TIME
+        , 	IF(SUSPEND_HOUR > RESUME_HOUR, 1, 0) AS FLAG
+    RESIDENT
+        WAREHOUSE_SESSIONS_tmp2
+    ;
+
+
+    LEFT JOIN (WAREHOUSE_SESSION_CREDITS_LINK_tmp)
+    LOAD
+            %KEY_WAREHOUSE_DATE_HOUR
+        ,	SUM(ELAPSED_TIME_SECOND) 			AS TOTAL_WAREHOUSE_DATE_HOUR_SECONDS
+    RESIDENT
+        WAREHOUSE_SESSION_CREDITS_LINK_tmp
+    GROUP BY
+        %KEY_WAREHOUSE_DATE_HOUR
+    ;
+
+
+    LEFT JOIN (WAREHOUSE_SESSION_CREDITS_LINK_tmp)
+    LOAD
+            %KEY_WAREHOUSE_DATE_HOUR
+        ,	CREDITS_USED AS TOTAL_WAREHOUSE_DATE_HOUR_CREDITS_USED
+    RESIDENT
+        HOURLY_COMPUTE
+    ;
+
+
+
+    WAREHOUSE_SESSION_CREDITS_LINK_tmp2:
+    NOCONCATENATE
+    LOAD
+            *
+       ,	(ELAPSED_TIME_SECOND / TOTAL_WAREHOUSE_DATE_HOUR_SECONDS) * TOTAL_WAREHOUSE_DATE_HOUR_CREDITS_USED AS WAREHOUSE_SESSION_APPORTIONED_CREDITS
+    RESIDENT
+        WAREHOUSE_SESSION_CREDITS_LINK_tmp
+    ;
+
+
+
+    LEFT JOIN (WAREHOUSE_EVENTS)
+    LOAD
+            %KEY_WAREHOUSE_SESSION
+        ,	SUM(WAREHOUSE_SESSION_APPORTIONED_CREDITS) AS TOTAL_WAREHOUSE_SESSION_APPORTIONED_CREDITS
+    RESIDENT
+        WAREHOUSE_SESSION_CREDITS_LINK_tmp2
+    GROUP BY
+        %KEY_WAREHOUSE_SESSION	
+    ;
+
+
+
+    WAREHOUSE_SESSION_CREDITS_LINK:
+    NOCONCATENATE
+    LOAD
+            %KEY_WAREHOUSE_SESSION
+        ,	%KEY_WAREHOUSE_DATE_HOUR
+    RESIDENT
+        WAREHOUSE_SESSION_CREDITS_LINK_tmp2
+    ;
+
+    DROP TABLE 
+            WAREHOUSE_SESSIONS_tmp2
+        ,	WAREHOUSE_SESSION_CREDITS_LINK_tmp
+        ,	WAREHOUSE_SESSION_CREDITS_LINK_tmp2
+    ;
+    
+END SUB
+///$tab TR - COS - APPORT COST
+SUB TRANSFROM_QUERY_COST_APPORTIONMENT
+
+
+    
+    LEFT JOIN (QUERY_HISTORY)
+    LOAD
+            %KEY_WAREHOUSE_SESSION
+        ,	SUM(TOTAL_ELAPSED_TIME_S) 					AS TOTAL_ELAPSED_TIME_S_WAREHOUSE
+    RESIDENT
+        QUERY_HISTORY
+    GROUP BY
+        %KEY_WAREHOUSE_SESSION
+    ;
+
+    LEFT JOIN (QUERY_HISTORY)
+    LOAD
+            %KEY_WAREHOUSE_SESSION
+        ,	TOTAL_WAREHOUSE_SESSION_APPORTIONED_CREDITS 		AS TOTAL_WAREHOUSE_SESSION_APPORTIONED_CREDITS_QUERY_JOIN
+    RESIDENT
+        WAREHOUSE_EVENTS
+    ;
+   
+   //WE dont need all the columns
+   /* OLD
+       LOAD 
+    		* 
+    	,	'QUERY HISTORY' 				AS TRANSACTION_TYPE
+        //,	QUERY_START_DATE 				AS TRANSACTION_DATE Optimsed 
+    RESIDENT QUERY_HISTORY;#
+    */
+   
+    CONCATENATE (TRANSACTION_TABLE)
+    LOAD 
+        	%KEY_WAREHOUSE_SESSION
+        ,	%KEY_QUERY
+        ,	QUERY_ID
+        ,	%KEY_DATABASE
+        ,	SCHEMA_ID
+        ,	%KEY_INVENTORY 
+        ,	QUERY_TYPE
+        ,	%KEY_SESSION
+        ,	%KEY_USER
+        ,   %KEY_ROLE        
+        ,	%KEY_WAREHOUSE
+        ,	WAREHOUSE_NAME
+        ,	WAREHOUSE_SIZE
+        ,	WAREHOUSE_TYPE
+        //,	QUERY_TAG
+        ,	EXECUTION_STATUS
+        ,	QUERY_START_TIME			AS  TRANSACTION_DATE
+        ,	QUERY_START_DATE			
+        ,	QUERY_END_TIME
+        //,	TOTAL_ELAPSED_TIME_MS
+		,	TOTAL_ELAPSED_TIME_S
+        //,	TOTAL_ELAPSED_TIME_M
+        //,	QUERY_CREDITS_USED_CLOUD_SERVICES
+        //,	NEXT_QUERY_START_TIME
+        //,	TIME_BETWEEN_NEXT_QUERY
+        ,	BYTES_SPILLED_TO_LOCAL_STORAGE
+        ,	BYTES_SPILLED_TO_REMOTE_STORAGE
+        //,	TOTAL_BYTES_SPILLED
+        ,   FLAG_QUERY_BYTES_FLAG
+        //,	PERCENTAGE_SCANNED_FROM_CACHE
+        ,	FLAG_QUERY_USED_CACHE
+        ,	QUERY_TIME_CATEGORY 
+        ,	%KEY_TRANSACTION_TO_QUERY
+        
+        ,	'QUERY HISTORY' 				AS TRANSACTION_TYPE
+		RESIDENT [QUERY_HISTORY]
+        ;
+    /*
+
+	Loads information about all the Queries in the snowflake environment.
+    This is loaded from the QVD generated at the start of the script and contains 
+    X amount of days based on the CONFIG.QUERY_RETENTION_PERIOD_DAYS variable
+
+*/
+
+    /*We dont need this tables as we've concatinated it into the Transaction table*/
+    DROP TABLES 
+           	QUERY_HISTORY;
+
+END SUB
+///$tab TR - CONTRACT TO COSTS
+/*
+
+
+
+*/
+
+
+SUB TRANSFROM_CONTRACT_TO_DAILY_COSTS
+
+	COST_TO_CONTRACT_LINK:
+    IntervalMatch(COST_DATE)
+    LOAD DISTINCT NUM(CONTRACT_START_DATE) AS NUM_CONTRACT_START_DATE,  NUM(CONTRACT_END_DATE - 1) AS NUM_CONTRACT_END_DATE
+    RESIDENT 
+    	CONTRACT_ITEMS
+    ;  	
+    
+    
+	LEFT JOIN (COSTS_DAILY)
+    LOAD DISTINCT
+    		COST_DATE
+        ,	NUM_CONTRACT_START_DATE & '-' & (NUM_CONTRACT_END_DATE + 1) AS %KEY_CONTRACT_PERIOD
+    RESIDENT 
+    	COST_TO_CONTRACT_LINK
+    ;	
+	
+	DROP TABLE
+    	COST_TO_CONTRACT_LINK;
+
+END SUB
+///$tab CREATE CALENDARS
+/*
+DATE: 2023-11-2023
+DEVELOPER: DT
+NOTES: USING THE OMETIS CALENDAR GENERATOR AT https://ometistoolkit.com
+
+*/
+
+SUB CREATE_CALENDAR
+
+    DateField:
+    LoAD * INLINE [
+    DateField
+    "COST_DATE"
+    "INVENTORY_CREATED_DATE"
+    "DATABASE_CREATED_DATE"
+    "SCHEMA_CREATED_DATE"
+    "TABLE_CREATED_DATE"
+    "COLUMN_CREATED_DATE"
+    "TRANSACTION_DATE"
+    ];
+
+    let vL.DateFieldRows = NoOfRows('DateField');
+
+
+    for table = 1 to $(vL.DateFieldRows)
+
+        Let vL.DateField = Peek('DateField', table - 1, 'DateField');
+
+
+        /********************************************************************************
+        ******************************Fetch all date values******************************
+        ********************************************************************************/
+        //Find the minimum and maximum value within the dates field.
+        [Min/Max dates]:
+        LOAD
+         FLOOR(MIN("Date_")) AS "MinDate";
+        LOAD
+         FIELDVALUE('$(vL.DateField)', ITERNO()) AS "Date_"
+        AUTOGENERATE(1)
+        WHILE NOT ISNULL(FIELDVALUE('$(vL.DateField)', ITERNO()));
+
+        //Create the varibales for the Minimum and Maximum dates.
+        LET varMinDate = RANGEMIN(PEEK('MinDate', -1, 'Min/Max dates'), YEARSTART(ADDYEARS(TODAY(1),-2))) ;
+        LET varMaxDate = floor(MonthEnd(AddMonths(Today(),6)));
+
+        //Clear the cache of the [Min/Max dates] table as we have finished using it to get our Min and Max Dates for our variables.
+        DROP TABLES [Min/Max dates];
+
+        /********************************************************************************
+        **************************Populate missing date values***************************
+        ********************************************************************************/
+        //Create a list of dates between our Minimum and Maximum dates.
+        [Missing dates table]:
+        LOAD
+         DATE($(varMinDate) + ROWNO() -1) AS "$(vL.DateField)"
+        AUTOGENERATE $(varMaxDate) - $(varMinDate) +1;
+
+        //Create report flags.
+        [Tmp Ometis Toolkit report flags]:
+        LOAD
+         "$(vL.DateField)"
+        ,  1											AS "Total"
+        , IF("$(vL.DateField)" = DATE(TODAY(1)),1) AS "Today"
+        , IF("$(vL.DateField)" = DATE(TODAY(1)-1),1) AS "Yesterday"
+        
+        , IF(WEEK("$(vL.DateField)") = WEEK(TODAY(1)) AND (Year("$(vL.DateField)") = YEAR(TODAY(1))),1) AS "Current week"
+        , IF(MONTH("$(vL.DateField)") = MONTH(TODAY(1)) AND (Year("$(vL.DateField)") = YEAR(TODAY(1))), 1) AS "Current month"
+        , IF(YEAR("$(vL.DateField)") = YEAR(TODAY(1)) AND NUM(CEIL(NUM(MONTH("$(vL.DateField)"))/3),00)=NUM(CEIL(NUM(MONTH(TODAY(1)))/3),00), 1) AS "Current quarter"
+        , IF(Year("$(vL.DateField)") = YEAR(TODAY(1)), 1) AS "Current year"
+        
+        , IF(WEEKSTART("$(vL.DateField)") = WEEKSTART(TODAY(1), -1),1) AS "Last week"
+        , IF(MONTHSTART("$(vL.DateField)") = MONTHSTART(TODAY(1),-1), 1) AS "Last full month"
+        , IF(YEAR("$(vL.DateField)") = YEAR(ADDMONTHS(TODAY(1),-3)) AND NUM(CEIL(NUM(MONTH("$(vL.DateField)"))/3),00)=NUM(CEIL(NUM(MONTH(ADDMONTHS(TODAY(1),-3)))/3),00), 1) AS "Last full quarter"
+        , IF(Year("$(vL.DateField)") = YEAR(ADDYEARS(TODAY(1),-1)) , 1) AS "Last full year"
+        
+        , IF(MONTHSTART("$(vL.DateField)") = MONTHSTART(TODAY(1),-2), 1) AS "Previous full month"
+        , IF(YEAR("$(vL.DateField)") = YEAR(ADDMONTHS(TODAY(1),-6)) AND NUM(CEIL(NUM(MONTH("$(vL.DateField)"))/3),00)=NUM(CEIL(NUM(MONTH(ADDMONTHS(TODAY(1),-6)))/3),00), 1) AS "Previous full quarter"
+        , IF(Year("$(vL.DateField)") = YEAR(ADDYEARS(TODAY(1),-2)), 1) AS "Previous full year"
+        
+        , IF(WEEKSTART("$(vL.DateField)") = WEEKSTART(TODAY(1), 1),1) AS "Next week"
+        , IF(MONTHSTART("$(vL.DateField)") = MONTHSTART(TODAY(1),1), 1) AS "Next month"
+        , IF(YEAR("$(vL.DateField)") = YEAR(ADDMONTHS(TODAY(1),3)) AND NUM(CEIL(NUM(MONTH("$(vL.DateField)"))/3),00)=NUM(CEIL(NUM(MONTH(ADDMONTHS(TODAY(1),3)))/3),00), 1) AS "Next quarter"
+        , IF(Year("$(vL.DateField)") = YEAR(ADDYEARS(TODAY(1),1)) , 1) AS "Next year"
+        
+        , IF(WEEK("$(vL.DateField)") = WEEK(TODAY(1)) AND (Year("$(vL.DateField)") = YEAR(TODAY(1))) AND ("$(vL.DateField)" <= TODAY(1)), 1) AS "Current week to date"
+        , IF(MONTH("$(vL.DateField)") = MONTH(TODAY(1)) AND (Year("$(vL.DateField)") = YEAR(TODAY(1))) AND ("$(vL.DateField)" <= TODAY(1)), 1) AS "Current month to date"
+        , IF((YEAR("$(vL.DateField)") = YEAR(TODAY(1)) AND NUM(CEIL(NUM(MONTH("$(vL.DateField)"))/3),00)=NUM(CEIL(NUM(MONTH(TODAY(1)))/3),00)) AND (DAYNUMBEROFQUARTER("$(vL.DateField)")<= DAYNUMBEROFQUARTER(TODAY(1))), 1) AS "Current quarter to date"
+        , IF(Year("$(vL.DateField)") = YEAR(TODAY(1)) AND "$(vL.DateField)" <= TODAY(1), 1) AS "Current year to date"
+        
+        , IF(WEEKSTART("$(vL.DateField)") = WEEKSTART(TODAY(1), -1) AND (NUM(WEEKDAY("$(vL.DateField)")) <= NUM(WEEKDAY(TODAY(1)-7))),1) AS "Last week to date"
+        , IF(MONTHSTART("$(vL.DateField)") = MONTHSTART(TODAY(1), -1) AND (DAY("$(vL.DateField)") <= DAY(TODAY(1))), 1) AS "Last month to date"
+        , IF((YEAR("$(vL.DateField)") = YEAR(ADDMONTHS(TODAY(1),-3)) AND NUM(CEIL(NUM(MONTH("$(vL.DateField)"))/3),00)=NUM(CEIL(NUM(MONTH(ADDMONTHS(TODAY(1),-3)))/3),00)) AND (DAYNUMBEROFQUARTER("$(vL.DateField)", 1)<= DAYNUMBEROFQUARTER(TODAY(1))), 1) AS "Last quarter to date"
+        , IF(Year("$(vL.DateField)") = YEAR(ADDYEARS(TODAY(1),-1)) AND ("$(vL.DateField)" <= ADDYEARS(TODAY(1),-1)), 1) AS "Last year to date"
+        
+        , IF(WEEKSTART("$(vL.DateField)") = WEEKSTART(TODAY(1), 1) AND (NUM(WEEKDAY("$(vL.DateField)")) <= NUM(WEEKDAY(TODAY(1)+7))),1) AS "Next week to date"
+        , IF(MONTHSTART("$(vL.DateField)") = MONTHSTART(TODAY(1), 1) AND (DAY("$(vL.DateField)") <= DAY(TODAY(1))), 1) AS "Next month to date"
+        , IF((YEAR("$(vL.DateField)") = YEAR(ADDMONTHS(TODAY(1),3)) AND NUM(CEIL(NUM(MONTH("$(vL.DateField)"))/3),00)=NUM(CEIL(NUM(MONTH(ADDMONTHS(TODAY(1),3)))/3),00)) AND (DAYNUMBEROFQUARTER("$(vL.DateField)", 1)<= DAYNUMBEROFQUARTER(TODAY(1))), 1) AS "Next quarter to date"
+        , IF(Year("$(vL.DateField)") = YEAR(ADDYEARS(TODAY(1),1)) AND ("$(vL.DateField)" <= ADDYEARS(TODAY(1),1)), 1) AS "Next year to date"
+        
+        , IF("$(vL.DateField)" > DATE(TODAY(1)-7) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 7 days"
+        , IF("$(vL.DateField)" > DATE(TODAY(1)-8) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 8 days"
+        , IF("$(vL.DateField)" > DATE(TODAY(1)-14) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 14 days"
+        , IF("$(vL.DateField)" > DATE(TODAY(1)-15) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 15 days"
+        
+        , IF(MONTHSTART("$(vL.DateField)") > MONTHSTART(TODAY(1), -3) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 3 months"
+        , IF(MONTHSTART("$(vL.DateField)") > MONTHSTART(TODAY(1), -6) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 6 months"
+        , IF(MONTHSTART("$(vL.DateField)") > MONTHSTART(TODAY(1), -9) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 9 months"
+        , IF(MONTHSTART("$(vL.DateField)") > MONTHSTART(TODAY(1), -12) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 12 months"
+        , IF(MONTHSTART("$(vL.DateField)") > MONTHSTART(TODAY(1), -13) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 13 months"
+        , IF(MONTHSTART("$(vL.DateField)") > MONTHSTART(TODAY(1), -15) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 15 months"
+        , IF(MONTHSTART("$(vL.DateField)") > MONTHSTART(TODAY(1), -18) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 18 months"
+        
+        , IF(WEEKSTART("$(vL.DateField)") > WEEKSTART(TODAY(1), -3) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 3 weeks"
+        , IF(WEEKSTART("$(vL.DateField)") > WEEKSTART(TODAY(1), -6) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 6 weeks"
+        , IF(WEEKSTART("$(vL.DateField)") > WEEKSTART(TODAY(1), -9) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 9 weeks"
+        , IF(WEEKSTART("$(vL.DateField)") > WEEKSTART(TODAY(1), -12) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 12 weeks"
+        , IF(WEEKSTART("$(vL.DateField)") > WEEKSTART(TODAY(1), -15) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 15 weeks"
+        , IF(WEEKSTART("$(vL.DateField)") > WEEKSTART(TODAY(1), -18) AND "$(vL.DateField)" <= DATE(TODAY(1)), 1) AS "Rolling 18 weeks"
+        
+        , IF("$(vL.DateField)" > DATE(TODAY(1)),1) AS "Future dates"
+        , IF("$(vL.DateField)" > MONTHEND(TODAY(1)) AND "$(vL.DateField)" < ADDMONTHS(MONTHEND(TODAY(1)),6) , 1) AS "Forecast 6 months"
+        RESIDENT [Missing dates table];
+
+
+        //--------------DT ---- ADDING A YEAR MONTHS VARIABLE AT START - TO CREATE A MONTHS SINCE START-------
+
+        MIN_DATE:
+        LOAD MIN($(vL.DateField)) AS MIN_DATE Resident [Missing dates table];
+
+        Let vL.YearMonths = Year(Peek('MIN_DATE',0,'MIN_DATE')) * 12 + Month(Peek('MIN_DATE',0,'MIN_DATE'));
+
+        DROP TABLE MIN_DATE;
+
+        /********************************************************************************
+        **************************Create reporting period field**************************
+        ********************************************************************************/
+        FOR counter = 2 to NoOfFields('Tmp Ometis Toolkit report flags')
+
+         LET varReportPeriod = FieldName('$(counter)','Tmp Ometis Toolkit report flags');
+         LET varFieldName = '['&FieldName('$(counter)','Tmp Ometis Toolkit report flags')&']';
+
+         [$(vL.DateField)_REPORTING_PERIODS]:
+         LOAD
+          "$(vL.DateField)",
+          '$(varReportPeriod)' AS "REPORT_PERIOD_$(vL.DateField)",
+          IF("$(vL.DateField)" > Today(), 1, 0) AS FLAG_FUTURE_DATE_$(vL.DateField)
+         RESIDENT [Tmp Ometis Toolkit report flags]
+         WHERE $(varFieldName) = 1;
+
+        NEXT;
+
+        //No longer require the [Tmp Ometis Toolkit report flags] table - removing from cache.
+        DROP TABLES [Tmp Ometis Toolkit report flags], [Missing dates table];
+
+        //No longer need the variables - setting them to null drops them.
+        varReportPeriod = NULL();
+        varFieldName = NULL();
+
+
+    next table
+
+
+    /********************************************************************************
+    ********************Create calendar year Time-aware calendar*********************
+    ********************************************************************************/
+    //Create common date variations from our chosen date field.
+    [Ometis Toolkit calendar definition]:
+    DECLARE FIELD DEFINITION Tagged ('$date')
+    Parameters
+      paramFirstMonthOfYear = 1
+    FIELDS
+       Dual(Year(YEARSTART($1, 0,paramFirstMonthOfYear)), YearStart($1, 0,paramFirstMonthOfYear)) AS "Year" Tagged ('$axis', '$year')
+     , num($1) as "Num"
+     , Dual('Q'&Num(Ceil(Num(Month(ADDMONTHS($1,1 - paramFirstMonthOfYear)))/3)),Num(Ceil(NUM(Month(ADDMONTHS($1,1 - paramFirstMonthOfYear)))/3),00)) AS "Quarter" Tagged ('$quarter', '$cyclic')
+     , Dual('Q'&Num(Ceil(Num(Month(ADDMONTHS($1,1 - paramFirstMonthOfYear)))/3))&'-'&Year(YEARSTART($1, 0,paramFirstMonthOfYear)),QuarterStart(ADDMONTHS($1,1 - paramFirstMonthOfYear))) AS "QuarterYear" Tagged ('$axis', '$yearquarter', '$qualified')
+     , Dual(Year(YEARSTART($1, 0,paramFirstMonthOfYear))&'-Q'&Num(Ceil(Num(Month(ADDMONTHS($1,1 - paramFirstMonthOfYear)))/3)),QuarterStart(ADDMONTHS($1,1 - paramFirstMonthOfYear))) AS "YearQuarter" Tagged ('$axis', '$yearquarter', '$qualified')
+     , Dual('Q'&Num(Ceil(Num(Month(ADDMONTHS($1,1 - paramFirstMonthOfYear)))/3)),QuarterStart(ADDMONTHS($1,1 - paramFirstMonthOfYear))) AS "_YearQuarter" Tagged ('$axis', '$yearquarter', '$hidden', '$simplified')
+     , Month($1) AS "Month" Tagged ('$month', '$cyclic')
+     , NUM(MONTH($1)) AS "Month No" TAGGED ('$month', '$cyclic')
+     , Dual(Year(YEARSTART($1, 0, paramFirstMonthOfYear))&'-'&MONTH($1), monthstart($1)) AS "YearMonth" Tagged ('$axis', '$yearmonth', '$qualified')
+     , Dual(MONTH($1)&'-'&Year($1), monthstart($1)) AS "MonthYear" Tagged ('$axis', '$monthyear', '$qualified')
+     , Dual(Month($1), MONTHSTART($1)) AS "_YearMonth" Tagged ('$axis', '$yearmonth', '$simplified', '$hidden')
+     , Dual(Year(YEARSTART($1, 0,paramFirstMonthOfYear))&'-'&NUM(MONTH(ADDMONTHS($1,1 - paramFirstMonthOfYear))), monthstart($1)) AS "YearPeriod" Tagged ('$axis', '$Yearperiod', '$qualified')
+     , Dual(Month($1), MONTHSTART($1)) AS "_YearPeriod" Tagged ('$axis', '$Yearperiod', '$simplified', '$hidden')
+     , Dual('W'&Num(Week(ADDMONTHS($1,1 - paramFirstMonthOfYear)),00), WEEK($1)) AS "Week" Tagged ('$weeknumber', '$cyclic')
+     , DUAL(WEEKYEAR(ADDMONTHS($1,1 - paramFirstMonthOfYear))&'-W'&NUM(WEEK(ADDMONTHS($1,1 - paramFirstMonthOfYear),0,0),00), WEEKSTART($1)) AS "YearWeek" Tagged ('$yearweek', '$qualified')
+     , Dual('W'&NUM(WEEK(ADDMONTHS($1,1 - paramFirstMonthOfYear)),00), WEEKSTART($1)) AS "_YearWeek" Tagged ('$yearweek', '$hidden', '$simplified')
+          
+     , Dual('W'&if(Week(ADDMONTHS($1, - floor(Month($1)-1,3))) > 13, num(0, '00'), Num(Week(ADDMONTHS($1, - floor(Month($1)-1,3))),'00')),if(Week(ADDMONTHS($1, - floor(Month($1)-1,3))) > 13, num(0, '00'), Num(Week(ADDMONTHS($1, - floor(Month($1)-1,3))),'00')))  AS "WeekofQuarter" Tagged ('$weeknumber', '$cyclic')
+     , Dual('W'&if(Week(ADDMONTHS($1, - floor(Month($1)-1,3))) > 13, num(0, '00'), Num(Week(ADDMONTHS($1, - floor(Month($1)-1,3))),'00')) & '-' & 'Q'&Num(Ceil(Num(Month(ADDMONTHS($1,1 - paramFirstMonthOfYear)))/3)) & '-' & Year(YEARSTART($1, 0,paramFirstMonthOfYear)), num(weekstart($1)))  AS "WeekofQuarterQuarterYear" Tagged ('$weeknumber', '$cyclic')
+     
+     , Date(Floor($1)) AS "Date" Tagged ('$axis', '$date', '$qualified')
+     , Date(Floor($1), 'D') AS "_Date" Tagged ('$axis', '$date', '$hidden', '$simplified')
+     , DUAL(WEEKDAY($1), NUM(WeekDay($1))) AS "Day" Tagged ('$day')
+     , DAY($1) AS "DayOfMonth" Tagged ('$day')
+     , DATE($1, 'D-MMM') AS "DayMonth" Tagged ('$day')
+     , DayNumberOfYear($1, paramFirstMonthOfYear) AS "DayNumberOfYear" Tagged ('$numeric')
+     , IF (DAYNUMBEROFYEAR($1, paramFirstMonthOfYear) <= DAYNUMBEROFYEAR(TODAY(1), paramFirstMonthOfYear), 1, 0) AS "InYTD"
+     , IF(Year(TODAY(1))-Year(YEARSTART($1, 0,paramFirstMonthOfYear)) >= 0, Year(TODAY(1))-Year(YEARSTART($1, 0,paramFirstMonthOfYear))) AS "YearsAgo"
+     , If(DAYNUMBEROFQUARTER($1, paramFirstMonthOfYear) <= DAYNUMBEROFQUARTER(TODAY(1), paramFirstMonthOfYear),1,0) AS "InQTD"
+     , IF(4*Year(TODAY(1))+Ceil(Month(TODAY(1))/3)-4*Year(YEARSTART($1, 0,paramFirstMonthOfYear))-Ceil(Month(ADDMONTHS($1,1 - paramFirstMonthOfYear))/3) >= 0, 4*Year(TODAY(1))+Ceil(Month(TODAY(1))/3)-4*Year(YEARSTART($1, 0,paramFirstMonthOfYear))-Ceil(Month(ADDMONTHS($1,1 - paramFirstMonthOfYear))/3)) AS "QuartersAgo"
+     , Ceil(Month(TODAY(1))/3)-Ceil(Month(ADDMONTHS($1,1 - paramFirstMonthOfYear))/3) AS "QuarterRelNo"
+     , IF(Day($1)<=Day(TODAY(1)),1,0) AS "InMTD"
+     , IF(12*Year(TODAY(1))+Month(TODAY(1))-12*Year($1)-Month($1) >= 0, 12*Year(TODAY(1))+Month(TODAY(1))-12*Year($1)-Month($1)) AS "MonthsAgo"
+     , Month(TODAY(1))-Month($1) AS "MonthRelNo"
+     , IF(WeekDay($1)<=WeekDay(TODAY(1)),1,0) AS "InWTD"
+     , IF((WeekStart(TODAY(1))-WeekStart($1))/7 >= 0, (WeekStart(TODAY(1))-WeekStart($1))/7) AS "WeeksAgo"
+     , Week(TODAY(1))-Week(ADDMONTHS($1,1 - paramFirstMonthOfYear)) AS "WeekRelNo"
+     , IF(TODAY(1)-$1 >= 0, TODAY(1)-$1) AS "DaysAgo"
+     , (Year($1) * 12 + Month($1)) - $(vL.YearMonths) as "MonthsFromStart"
+     , (Year(TODAY(1)) * 12 + Month(TODAY(1))) - (Year($1) * 12 + Month($1)) as RelativeMonth
+     ;
+
+    [CALENDAR]:
+    DECLARE FIELD DEFINITION USING [Ometis Toolkit calendar definition] WITH paramFirstMonthOfYear = 1;
+
+    DERIVE FIELDS FROM FIELDS "COST_DATE", "DATABASE_CREATED_DATE", "SCHEMA_CREATED_DATE", "TABLE_CREATED_DATE", "COLUMN_CREATED_DATE", "INVENTORY_CREATED_DATE", "USER_CREATED_ON", "USER_LAST_SUCCESS_LOGIN", "EVENT_TIMESTAMP", "TRANSACTION_DATE" USING [CALENDAR];
+	
+        //No longer need the variables - setting them to null drops them.
+    varMaxDate = NULL();
+    varMinDate = NULL();
+
+
+//     DROP TABLE
+//         DateField
+//         ;
+    
+END SUB    
+///$tab ==PROCESS==
+/*
+
+	We can control the run order of the Qlik app. This part of the Qlik app calls the relavent parts in
+    order so its easier to control and manage the flow of the Qlik app.
+
+*/
+CALL CHECK_VERSIOING;
+
+
+LIB CONNECT TO '$(CONFIG.APP.SNOWFLAKECONNECTION)';
+CALL SIZING_ENVIRONMENT;
+CALL SET_QVD_STORE_VARIABLES; //This now uses the sizing to see how many days hist we might need.
+
+//-----> BUILD QVDS 
+CALL EVENTS_QUERY_CORE; 
+CALL WAREHOUSE_QUERY_EVENTS;
+CALL EVENTS_WAREHOUSE_CORE; 
+CALL EVENTS_QUERY; 
+CALL EVENTS_WAREHOUSE; 
+CALL DAILY_COST_AGGR; 
+
+
+//----> EXTRACT - INVENTORY
+CALL EXTRACT_DATABASES;
+CALL EXTRACT_SCHEMAS;
+CALL EXTRACT_TABLES;
+CALL EXTRACT_COLUMNS;
+CALL CREATE_INVENTORY_MAPS;
+
+// ----> EXTRACT - SECURITY
+CALL EXTRACT_ROLES;
+CALL EXTRACT_USERS;
+CALL CREATE_USER_ID_MAP;
+CALL CREATE_ROLE_ID_MAP;
+CALL EXTRACT_PRIVILEGES;
+
+
+// ----> EXTRACT - USAGE
+CALL EXTARCT_QUERY_HISTORY;
+CALL EXTRACT_SESSIONS;
+CALL EXTRACT_WH_EVENTS;
+CALL CREATE_WAREHOUSE_SIZE_MAP;
+CALL CREATE_TRANSACTION_FACT_TABLE;
+
+
+//----> EXTRACT - COST
+CALL EXTRACT_DAILY_COSTS;
+CALL EXTRACT_RATE_SHEET;
+CALL EXTRACT_HOURLY_COMPUTE;
+CALL EXTRACT_CONTRACT_ITEMS;
+
+//----> TRANSFORM 
+CALL CREATE_WAREHOUSE_TABLE;
+CALL TRANSFORM_INV_LASTUSED;
+CALL TRANSFORM_INVENTORY_BRIDGE;
+CALL TRANSFORM_NODES_GRANTS;
+CALL TRANSFORM_DAILY_COSTS;
+CALL TRANSFROM_JOIN_HOURLY_WH_COST_TO_WH_SESSION;
+CALL TRANSFROM_QUERY_COST_APPORTIONMENT;
+CALL TRANSFROM_CONTRACT_TO_DAILY_COSTS;
+CALL CREATE_CALENDAR;
+
+//EXIT SCRIPT;
+///$tab ==CLEANUP==
+/*
+
+	We remove and fields,Tables not required
+    and Autonumber Key columns to save on space.
+
+*/
+
+DROP FIELDS
+		DATABASE_SCHEMA_TABLE_NAME 
+        	FROM TABLES
+     
+    ;
+    
+DROP FIELDS
+		SCHEMA_ID 
+     ,	%KEY_DATABASE
+     ,	WAREHOUSE_ID
+    ,	WAREHOUSE_NAME
+    ,	WAREHOUSE_SIZE
+    ,	WAREHOUSE_TYPE
+    ,	DATABASE_ID
+	,	%KEY_WAREHOUSE
+     		FROM TRANSACTION_TABLE
+     
+    ;   
+    
+
+    
+AUTONUMBER     
+	"%KEY_TABLE"
+,	"%KEY_COLUMN"
+,	"%KEY_ROLE"
+,	"%KEY_USER"
+,	"%KEY_SESSION"
+,	"%KEY_INVENTORY"
+,	"%KEY_WAREHOUSE_SESSION"
+,	"%KEY_WAREHOUSE_DATE_HOUR"
+,	"%KEY_DATE_SERVICE_TYPE"
+,	"%KEY_CONTRACT_PERIOD"
+,	"%KEY_DATABASE"
+;
+
+///$tab ==OPTIONAL CLEANUP== 
+/*
+Optional clean up fields, comment out if you want in data set
+*/
+
+DROP FIELDS 
+	TABLE_CATALOG,
+    TABLE_SCHEMA,
+    TABLE_OWNER,
+    IS_TRANSIENT,
+    CLUSTERING_KEY,
+    TABLE_LAST_ALTERED,
+    LAST_DDL,
+    LAST_DDL_BY,
+    TABLE_DELETED,
+    TABLE_COMMENT,
+    COLUMN_IS_NULLABLE,
+    COLUMN_COMMENT,
+    COLUMN_DELETED,
+    ROLE_ID,
+    ROLE_DELETED_DATE,
+    ROLE_COMMENT,
+    ROLE_DATABASE_NAME,
+    ROLE_INSTANCE_ID,
+    USER_DELETED_ON,
+    USER_LOGIN_NAME,
+    USER_FIRST_NAME,
+    USER_LAST_NAME,
+    USER_DISABLED,
+    USER_SNOWFLAKE_LOCK,
+    USER_DEFAULT_WAREHOUSE,
+    USER_DEFAULT_ROLE,
+    GRANTED_TO,
+    GRANT_ON_CATALOG,
+    GRANT_ON_SCHEMA,
+    SESSION_ID,
+    SESSION_CREATED_ON,
+    AUTHENTICATION_METHOD,
+    %KEY_LOGIN_EVENT,
+    //QUERY_TAG,
+    //TOTAL_ELAPSED_TIME_MS,
+    //TOTAL_ELAPSED_TIME_M,
+    //QUERY_CREDITS_USED_CLOUD_SERVICES,
+    //NEXT_QUERY_START_TIME,
+    //TIME_BETWEEN_NEXT_QUERY,
+    //TOTAL_BYTES_SPILLED,
+    //PERCENTAGE_SCANNED_FROM_CACHE,
+    %KEY_TRANSACTION_TO_QUERY,
+    EVENT_ID,
+    LOGIN_EVENT_TYPE,
+    SECOND_AUTHENTICATION_FACTOR,
+    LOGIN_ERROR_CODE,
+    LOGIN_ERROR_MESSAGE,
+    CREDITS_USED_CLOUD_SERVICES,
+    USED_COMPUTE,
+    %KEY_TASK,
+    TASK_NAME,
+    CONTRACT_EXPIRATION_DATE,
+    CONTRACT_ITEM,
+    CONTRACT_CURRENCY,
+    CONTRACT_MODIFIED_DATE,
+    WAREHOUSE_TYPE,
+    %KEY_WAREHOUSE_PERIOD,
+    WH_START_PERIOD,
+    WH_END_PERIOD,
+    FLAG_CURRENT_WAREHOUSE,
+    DATABASE_OWNER,
+    DATABASE_COMMENT,
+    DATABASE_CREATED_TIME,
+    DATABASE_LAST_ALTERED,
+    DATABASE_DELETED,
+    DATABASE_LAST_SELECT_QUERY,
+    CATALOG_NAME,
+    SCHEMA_OWNER,
+    SCHEMA_LAST_ALTERED,
+    SCHEMA_DELETED,
+    SCHEMA_TYPE,
+    SCHEMA_LAST_SELECT_QUERY,
+    SCHEMA_LAST_SELECT_QUERY_DAYS,
+    %KEY_WAREHOUSE,
+    START_EVENT_DATETIME,
+    END_EVENT_DATETIME,
+    NEXT_EVENT_DATETIME,
+    TIME_TO_NEXT_SPIN_UP,
+    LAST_QUERY_TIME,
+    FIRST_QUERY_TIME,
+    QUERY_COUNT,
+    TOTAL_WAREHOUSE_SESSION_APPORTIONED_CREDITS,
+    STORAGE_BYTES,
+    STAGE_BYTES,
+    FAILSAFE_BYTES,
+    HYBRID_TABLE_STORAGE_BYTES,
+    TOTAL_CREDITS_USED,
+    CREDITS_ADJUSTMENT_CLOUD_SERVICES,
+    CREDITS_BILLED,
+    FLAG_COMPUTE_OVERAGE,
+    BYTES,
+    %KEY_COST_DATE,
+    DateField,
+    FLAG_FUTURE_DATE_COST_DATE,
+    FLAG_FUTURE_DATE_INVENTORY_CREATED_DATE,
+    FLAG_FUTURE_DATE_DATABASE_CREATED_DATE,
+    REPORT_PERIOD_SCHEMA_CREATED_DATE,
+    FLAG_FUTURE_DATE_SCHEMA_CREATED_DATE,
+    REPORT_PERIOD_TABLE_CREATED_DATE,
+    FLAG_FUTURE_DATE_TABLE_CREATED_DATE,
+    REPORT_PERIOD_COLUMN_CREATED_DATE,
+    FLAG_FUTURE_DATE_COLUMN_CREATED_DATE,
+    FLAG_FUTURE_DATE_TRANSACTION_DATE
+;
+
+///$tab ==EXIT SCRIPT==
+EXIT SCRIPT;
+///$tab ====================

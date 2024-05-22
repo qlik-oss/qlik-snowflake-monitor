@@ -1,0 +1,482 @@
+{
+  "qProperty": {
+    "qInfo": {
+      "qId": "d1127cc3-2df6-46cb-85c1-6fb0f2ac6266",
+      "qType": "sheet"
+    },
+    "qMetaDef": {
+      "title": "[RP][24012024]Information",
+      "description": ""
+    },
+    "rank": 45.285156,
+    "thumbnail": {
+      "qStaticContentUrlDef": {
+        "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/Information_tab.png"
+      }
+    },
+    "columns": 84,
+    "rows": 42,
+    "cells": [
+      {
+        "name": "c029fd46-f2f8-4a07-877a-041f854c0998",
+        "type": "text-image",
+        "col": 2,
+        "row": 4,
+        "colspan": 80,
+        "rowspan": 2,
+        "bounds": {
+          "y": 9.523809523809524,
+          "x": 2.380952380952381,
+          "width": 95.23809523809523,
+          "height": 4.761904761904762
+        }
+      },
+      {
+        "name": "95327f99-3e9d-4610-ac45-dcfe2a490431",
+        "type": "text-image",
+        "col": 2,
+        "row": 6,
+        "colspan": 80,
+        "rowspan": 11,
+        "bounds": {
+          "y": 14.285714285714285,
+          "x": 2.380952380952381,
+          "width": 95.23809523809523,
+          "height": 26.190476190476193
+        }
+      },
+      {
+        "name": "262e0b89-e6f7-4aae-b37f-a68ab886874d",
+        "type": "text-image",
+        "col": 2,
+        "row": 17,
+        "colspan": 80,
+        "rowspan": 2,
+        "bounds": {
+          "y": 40.476190476190474,
+          "x": 2.380952380952381,
+          "width": 95.23809523809523,
+          "height": 4.761904761904762
+        }
+      },
+      {
+        "name": "2d2ea451-e436-4dfe-a97f-61401c064f4e",
+        "type": "text-image",
+        "col": 2,
+        "row": 19,
+        "colspan": 79,
+        "rowspan": 19,
+        "bounds": {
+          "y": 45.23809523809524,
+          "x": 2.380952380952381,
+          "width": 94.04761904761905,
+          "height": 45.23809523809524
+        }
+      },
+      {
+        "name": "6998b3a4-9099-4dcb-86f3-97d2e8710a74",
+        "type": "sn-layout-container",
+        "col": 0,
+        "row": 0,
+        "colspan": 84,
+        "rowspan": 4,
+        "bounds": {
+          "y": 0,
+          "x": 0,
+          "width": 100,
+          "height": 9.523809523809524
+        }
+      }
+    ],
+    "qChildListDef": {
+      "qData": {
+        "title": "/title"
+      }
+    },
+    "customRowBase": 42,
+    "gridResolution": "customrows",
+    "layoutOptions": {
+      "mobileLayout": "LIST",
+      "extendable": false
+    },
+    "gridMode": "edit",
+    "actions": [
+      {
+        "actionLabel": "Set active sheet variable",
+        "actionType": "setVariable",
+        "bookmark": "",
+        "field": "",
+        "variable": "v.ActiveSheet",
+        "showSystemVariables": false,
+        "softLock": false,
+        "value": "Information",
+        "cId": "psGXm"
+      }
+    ]
+  },
+  "qChildren": [
+    {
+      "qProperty": {
+        "qInfo": {
+          "qId": "262e0b89-e6f7-4aae-b37f-a68ab886874d",
+          "qType": "text-image"
+        },
+        "qMetaDef": {},
+        "qHyperCubeDef": {
+          "qDimensions": [],
+          "qMeasures": [],
+          "qInterColumnSortOrder": [],
+          "qInitialDataFetch": [],
+          "qReductionMode": "N",
+          "qMode": "S",
+          "qPseudoDimPos": -1,
+          "qNoOfLeftDims": -1,
+          "qMaxStackedCells": 5000,
+          "qCalcCond": {},
+          "qTitle": {},
+          "qCalcCondition": {
+            "qCond": {},
+            "qMsg": {}
+          },
+          "qColumnOrder": [],
+          "qExpansionState": [],
+          "qDynamicScript": [],
+          "qSuppressMeasureTotals": true,
+          "qLayoutExclude": {
+            "qHyperCubeDef": {
+              "qDimensions": [],
+              "qMeasures": [],
+              "qInterColumnSortOrder": [],
+              "qInitialDataFetch": [],
+              "qReductionMode": "N",
+              "qMode": "S",
+              "qPseudoDimPos": -1,
+              "qNoOfLeftDims": -1,
+              "qMaxStackedCells": 5000,
+              "qCalcCond": {},
+              "qTitle": {},
+              "qCalcCondition": {
+                "qCond": {},
+                "qMsg": {}
+              },
+              "qColumnOrder": [],
+              "qExpansionState": [],
+              "qDynamicScript": []
+            }
+          }
+        },
+        "script": "",
+        "showTitles": false,
+        "title": "",
+        "subtitle": "",
+        "footnote": "",
+        "disableNavMenu": false,
+        "showDetails": true,
+        "showDetailsExpression": false,
+        "components": [
+          {
+            "key": "general",
+            "bgColor": {
+              "useColorExpression": true,
+              "colorExpression": {
+                "qStringExpression": {
+                  "qExpr": "'$(v.Colour_SnowflakeDarkBlue)'\r\n"
+                }
+              }
+            },
+            "bgImage": {
+              "mode": "none",
+              "mediaUrl": {}
+            }
+          }
+        ],
+        "responsive": "all",
+        "markdown": "#[%[**Metrics and definitions**](4)]({\"index\":1,\"color\":\"#ffffff\"})",
+        "images": [],
+        "background": {
+          "isUsed": false,
+          "size": "auto",
+          "position": "topLeft",
+          "url": {}
+        },
+        "visualization": "text-image",
+        "appId": "8b917b0b-50d6-432c-a761-990bf7b347e1"
+      },
+      "qChildren": []
+    },
+    {
+      "qProperty": {
+        "qInfo": {
+          "qId": "c029fd46-f2f8-4a07-877a-041f854c0998",
+          "qType": "text-image"
+        },
+        "qMetaDef": {},
+        "qHyperCubeDef": {
+          "qDimensions": [],
+          "qMeasures": [],
+          "qInterColumnSortOrder": [],
+          "qInitialDataFetch": [],
+          "qReductionMode": "N",
+          "qMode": "S",
+          "qPseudoDimPos": -1,
+          "qNoOfLeftDims": -1,
+          "qMaxStackedCells": 5000,
+          "qCalcCond": {},
+          "qTitle": {},
+          "qCalcCondition": {
+            "qCond": {},
+            "qMsg": {}
+          },
+          "qColumnOrder": [],
+          "qExpansionState": [],
+          "qDynamicScript": [],
+          "qSuppressMeasureTotals": true,
+          "qLayoutExclude": {
+            "qHyperCubeDef": {
+              "qDimensions": [],
+              "qMeasures": [],
+              "qInterColumnSortOrder": [],
+              "qInitialDataFetch": [],
+              "qReductionMode": "N",
+              "qMode": "S",
+              "qPseudoDimPos": -1,
+              "qNoOfLeftDims": -1,
+              "qMaxStackedCells": 5000,
+              "qCalcCond": {},
+              "qTitle": {},
+              "qCalcCondition": {
+                "qCond": {},
+                "qMsg": {}
+              },
+              "qColumnOrder": [],
+              "qExpansionState": [],
+              "qDynamicScript": []
+            }
+          }
+        },
+        "script": "",
+        "showTitles": false,
+        "title": "",
+        "subtitle": "",
+        "footnote": "",
+        "disableNavMenu": false,
+        "showDetails": true,
+        "showDetailsExpression": false,
+        "components": [
+          {
+            "key": "general",
+            "bgColor": {
+              "useColorExpression": true,
+              "colorExpression": {
+                "qStringExpression": {
+                  "qExpr": "'$(v.Colour_SnowflakeDarkBlue)'"
+                }
+              }
+            },
+            "bgImage": {
+              "mode": "none",
+              "mediaUrl": {}
+            }
+          }
+        ],
+        "responsive": "all",
+        "markdown": "**#[%[How to use this app](4)]({\"index\":1,\"color\":\"#ffffff\"})**",
+        "images": [],
+        "background": {
+          "isUsed": false,
+          "size": "auto",
+          "position": "topLeft",
+          "url": {}
+        },
+        "visualization": "text-image",
+        "appId": "8b917b0b-50d6-432c-a761-990bf7b347e1"
+      },
+      "qChildren": []
+    },
+    {
+      "qProperty": {
+        "qInfo": {
+          "qId": "95327f99-3e9d-4610-ac45-dcfe2a490431",
+          "qType": "text-image"
+        },
+        "qMetaDef": {},
+        "qHyperCubeDef": {
+          "qDimensions": [],
+          "qMeasures": [],
+          "qInterColumnSortOrder": [],
+          "qInitialDataFetch": [],
+          "qReductionMode": "N",
+          "qMode": "S",
+          "qPseudoDimPos": -1,
+          "qNoOfLeftDims": -1,
+          "qMaxStackedCells": 5000,
+          "qCalcCond": {},
+          "qTitle": {},
+          "qCalcCondition": {
+            "qCond": {},
+            "qMsg": {}
+          },
+          "qColumnOrder": [],
+          "qExpansionState": [],
+          "qDynamicScript": [],
+          "qSuppressMeasureTotals": true,
+          "qLayoutExclude": {
+            "qHyperCubeDef": {
+              "qDimensions": [],
+              "qMeasures": [],
+              "qInterColumnSortOrder": [],
+              "qInitialDataFetch": [],
+              "qReductionMode": "N",
+              "qMode": "S",
+              "qPseudoDimPos": -1,
+              "qNoOfLeftDims": -1,
+              "qMaxStackedCells": 5000,
+              "qCalcCond": {},
+              "qTitle": {},
+              "qCalcCondition": {
+                "qCond": {},
+                "qMsg": {}
+              },
+              "qColumnOrder": [],
+              "qExpansionState": [],
+              "qDynamicScript": []
+            }
+          }
+        },
+        "script": "",
+        "showTitles": false,
+        "title": "",
+        "subtitle": "",
+        "footnote": "",
+        "disableNavMenu": false,
+        "showDetails": true,
+        "showDetailsExpression": false,
+        "components": [
+          {
+            "key": "general",
+            "bgColor": {
+              "color": {
+                "index": 0,
+                "color": "none"
+              }
+            },
+            "bgImage": {
+              "mode": "none",
+              "mediaUrl": {}
+            }
+          }
+        ],
+        "responsive": "text",
+        "markdown": "%[Welcome to you Qlik Snowflake Monitoring app! ](4)^[%[\n](4)](inherit)^[%[Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n](4)](inherit)^[%[\n](4)](inherit)^[%[Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.](4)%[\n](4)](inherit)",
+        "images": [],
+        "background": {
+          "isUsed": false,
+          "size": "auto",
+          "position": "topLeft",
+          "url": {}
+        },
+        "visualization": "text-image",
+        "appId": "8b917b0b-50d6-432c-a761-990bf7b347e1"
+      },
+      "qChildren": []
+    },
+    {
+      "qProperty": {
+        "qInfo": {
+          "qId": "2d2ea451-e436-4dfe-a97f-61401c064f4e",
+          "qType": "text-image"
+        },
+        "qMetaDef": {},
+        "qHyperCubeDef": {
+          "qDimensions": [],
+          "qMeasures": [],
+          "qInterColumnSortOrder": [],
+          "qInitialDataFetch": [],
+          "qReductionMode": "N",
+          "qMode": "S",
+          "qPseudoDimPos": -1,
+          "qNoOfLeftDims": -1,
+          "qMaxStackedCells": 5000,
+          "qCalcCond": {},
+          "qTitle": {},
+          "qCalcCondition": {
+            "qCond": {},
+            "qMsg": {}
+          },
+          "qColumnOrder": [],
+          "qExpansionState": [],
+          "qDynamicScript": [],
+          "qSuppressMeasureTotals": true,
+          "qLayoutExclude": {
+            "qHyperCubeDef": {
+              "qDimensions": [],
+              "qMeasures": [],
+              "qInterColumnSortOrder": [],
+              "qInitialDataFetch": [],
+              "qReductionMode": "N",
+              "qMode": "S",
+              "qPseudoDimPos": -1,
+              "qNoOfLeftDims": -1,
+              "qMaxStackedCells": 5000,
+              "qCalcCond": {},
+              "qTitle": {},
+              "qCalcCondition": {
+                "qCond": {},
+                "qMsg": {}
+              },
+              "qColumnOrder": [],
+              "qExpansionState": [],
+              "qDynamicScript": []
+            }
+          }
+        },
+        "script": "",
+        "showTitles": false,
+        "title": "",
+        "subtitle": "",
+        "footnote": "",
+        "disableNavMenu": false,
+        "showDetails": true,
+        "showDetailsExpression": false,
+        "components": [
+          {
+            "key": "general",
+            "bgColor": {
+              "color": {
+                "index": 0,
+                "color": "none"
+              }
+            },
+            "bgImage": {
+              "mode": "none",
+              "mediaUrl": {}
+            }
+          }
+        ],
+        "responsive": "text",
+        "markdown": "^[\n](inherit)^[Cost Apportionment Logic: To give a greater depth of cost analysis we use logic to apportion cost by query and aggregate back up from that to give detail splits of where costs hotspots are. The billing data from snowflake is by day, by hour, by warehouse. We look at the warehouse ‘sessions’ or time the warehouse has been on, and allocate this to one or more billing hours in that day. We then split the cost of hour, by time proportion of all warehouse’s sessions in that hour. Within each warehouse session there are queries ran in that billing hour. Will repeat the logic and generate a time share % of that query within that warehouse session in that hour.  You then end up with a \\-   Credits Used in Hour \\* Warehouse Cost Split % \\* Query Cost Split % = Query Cost.\n](inherit)^[%[\n](4)](inherit)^[%[Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.](4)%[\n](4)](inherit)",
+        "images": [],
+        "background": {
+          "isUsed": false,
+          "size": "auto",
+          "position": "topLeft",
+          "url": {}
+        },
+        "visualization": "text-image",
+        "appId": "8b917b0b-50d6-432c-a761-990bf7b347e1"
+      },
+      "qChildren": []
+    },
+    {
+      "qProperty": {
+        "qInfo": {
+          "qId": "6998b3a4-9099-4dcb-86f3-97d2e8710a74",
+          "qType": "sn-layout-container"
+        },
+        "qExtendsId": "bfcb2ad1-09fa-45b1-b5c8-f3b28145bc44",
+        "qMetaDef": {}
+      },
+      "qChildren": []
+    }
+  ]
+}

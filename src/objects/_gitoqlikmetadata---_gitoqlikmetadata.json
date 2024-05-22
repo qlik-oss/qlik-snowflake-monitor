@@ -1,0 +1,30 @@
+{
+  "qInfo": {
+    "qId": "_gitoqlikMetaData",
+    "qType": "_gitoqlikMetaData"
+  },
+  "qMetaDef": {},
+  "qMeta": {
+    "_resourcetype": "app.object",
+    "_objecttype": "_gitoqlikMetaData",
+    "id": "_gitoqlikMetaData",
+    "approved": false,
+    "published": true,
+    "owner": "OMAIL\\alex.walker@ometis.co.uk",
+    "ownerId": "aMhdV1tK0DbG3pr2Juug9jED5dzSzAz_",
+    "createdDate": "2023-12-18T11:55:59.952Z",
+    "modifiedDate": "2023-12-18T11:56:00.104Z",
+    "publishTime": "2023-12-18T11:56:00.104Z",
+    "privileges": [
+      "read",
+      "publish",
+      "change_owner"
+    ]
+  },
+  "qSelectionInfo": {},
+  "_data": {
+    "masterId": "bfca79af-2e43-42b8-a099-934eaabeeece",
+    "infoByServerType": {},
+    "updatedAt": 1702900567731
+  }
+}

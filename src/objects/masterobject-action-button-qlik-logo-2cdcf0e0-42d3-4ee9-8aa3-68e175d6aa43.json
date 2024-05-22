@@ -1,0 +1,107 @@
+{
+  "qInfo": {
+    "qId": "2cdcf0e0-42d3-4ee9-8aa3-68e175d6aa43",
+    "qType": "masterobject"
+  },
+  "qMetaDef": {
+    "title": "Qlik Logo",
+    "description": "",
+    "tags": []
+  },
+  "actions": [],
+  "navigation": {
+    "action": "openWebsite",
+    "appId": "",
+    "sheet": "",
+    "chartId": "",
+    "story": "",
+    "websiteUrl": "https://www.qlik.com/us/products/qlik-sense",
+    "sameWindow": false,
+    "odagLink": ""
+  },
+  "useEnabledCondition": false,
+  "enabledCondition": 1,
+  "showTitles": false,
+  "title": "",
+  "subtitle": "",
+  "footnote": "",
+  "disableNavMenu": true,
+  "showDetails": false,
+  "showDetailsExpression": false,
+  "style": {
+    "label": "Button",
+    "showLabel": false,
+    "font": {
+      "size": 0.5,
+      "useColorExpression": false,
+      "color": {
+        "index": -1,
+        "color": "#ffffff"
+      },
+      "colorExpression": "",
+      "style": {
+        "bold": true,
+        "italic": false,
+        "underline": false
+      },
+      "align": "center",
+      "fontFamily": "Source Sans Pro",
+      "sizeFixed": 20,
+      "sizeBehavior": "responsive"
+    },
+    "background": {
+      "useColorExpression": false,
+      "color": {
+        "index": 1,
+        "color": "#ffffff"
+      },
+      "colorExpression": "",
+      "useImage": false,
+      "size": "alwaysFit",
+      "position": "center-center",
+      "mode": "media",
+      "url": {
+        "qStaticContentUrlDef": {
+          "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/Qlik Logo No Trademark 2 Color Positive RGB.png"
+        }
+      }
+    },
+    "border": {
+      "useBorder": false,
+      "radius": 0,
+      "width": 0,
+      "useColorExpression": false,
+      "color": {
+        "index": -1,
+        "color": "none"
+      },
+      "colorExpression": ""
+    },
+    "icon": {
+      "useIcon": false,
+      "iconType": "",
+      "position": "left"
+    }
+  },
+  "components": [
+    {
+      "key": "general",
+      "bgImage": {
+        "mode": "media",
+        "mediaUrl": {
+          "qStaticContentUrlDef": {}
+        },
+        "sizing": "alwaysFit"
+      },
+      "bgColor": {
+        "color": {
+          "index": 0,
+          "color": "none"
+        }
+      }
+    }
+  ],
+  "visualization": "action-button",
+  "version": "1.39.0",
+  "masterVersion": 0.96
+}
