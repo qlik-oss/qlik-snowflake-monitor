@@ -11,7 +11,7 @@
     "rank": 41.285156,
     "thumbnail": {
       "qStaticContentUrlDef": {
-        "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/Usage_tab.png"
+        "qUrl": "/api/v1/apps/483c6ea5-ab8b-40b4-988c-821eb463fd6d/media/files/Usage_tab.png"
       }
     },
     "columns": 84,
@@ -477,7 +477,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/usage_icon2.png"
+                  "qUrl": "/api/v1/apps/483c6ea5-ab8b-40b4-988c-821eb463fd6d/media/files/usage_icon2.png"
                 }
               }
             },

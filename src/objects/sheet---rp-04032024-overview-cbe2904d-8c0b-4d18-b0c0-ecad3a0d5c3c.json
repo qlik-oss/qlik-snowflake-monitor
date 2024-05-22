@@ -11,7 +11,7 @@
     "rank": 46.285156,
     "thumbnail": {
       "qStaticContentUrlDef": {
-        "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/Overview_tab.png"
+        "qUrl": "/api/v1/apps/483c6ea5-ab8b-40b4-988c-821eb463fd6d/media/files/Overview_tab.png"
       }
     },
     "columns": 84,
@@ -1092,7 +1092,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/Cost_SF_icon.png"
+                  "qUrl": "/api/v1/apps/483c6ea5-ab8b-40b4-988c-821eb463fd6d/media/files/Cost_SF_icon.png"
                 }
               }
             },
@@ -4136,7 +4136,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/Usage_SF_icon.png"
+                  "qUrl": "/api/v1/apps/483c6ea5-ab8b-40b4-988c-821eb463fd6d/media/files/Usage_SF_icon.png"
                 }
               }
             },
@@ -5742,7 +5742,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/Security_SF_icon.png"
+                  "qUrl": "/api/v1/apps/483c6ea5-ab8b-40b4-988c-821eb463fd6d/media/files/Security_SF_icon.png"
                 }
               }
             },
@@ -7229,7 +7229,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/Peformance_SF_icon.png"
+                  "qUrl": "/api/v1/apps/483c6ea5-ab8b-40b4-988c-821eb463fd6d/media/files/Peformance_SF_icon.png"
                 }
               }
             },
@@ -8943,7 +8943,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/0beb617c-28a0-4876-ba25-674a4e690d6b/media/files/Inventory_SF_icon.png"
+                  "qUrl": "/api/v1/apps/483c6ea5-ab8b-40b4-988c-821eb463fd6d/media/files/Inventory_SF_icon.png"
                 }
               }
             },
