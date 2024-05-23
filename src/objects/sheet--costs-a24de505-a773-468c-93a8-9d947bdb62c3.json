@@ -11,7 +11,7 @@
     "rank": 6,
     "thumbnail": {
       "qStaticContentUrlDef": {
-        "qUrl": "/api/v1/apps/28409df3-f2f9-4cc7-b92f-730084ab9e4c/media/files/Costs_tab.png"
+        "qUrl": "/api/v1/apps/1072592b-aa93-45a6-85af-7575d49d8c13/media/files/Costs_tab.png"
       }
     },
     "columns": 84,
@@ -5799,7 +5799,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/28409df3-f2f9-4cc7-b92f-730084ab9e4c/media/files/Cost_SF_icon.png"
+                  "qUrl": "/api/v1/apps/1072592b-aa93-45a6-85af-7575d49d8c13/media/files/Cost_SF_icon.png"
                 }
               }
             },
