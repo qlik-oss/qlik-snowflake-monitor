@@ -11,7 +11,7 @@
     "rank": 7,
     "thumbnail": {
       "qStaticContentUrlDef": {
-        "qUrl": "/api/v1/apps/b40565df-5bbe-4fcb-bedf-f72e841a4f95/media/files/Usage_tab.png"
+        "qUrl": "/api/v1/apps/c5e9283a-23f6-4a2d-8fb1-e27a5e6fd022/media/files/Usage_tab.png"
       }
     },
     "columns": 84,
@@ -464,7 +464,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/b40565df-5bbe-4fcb-bedf-f72e841a4f95/media/files/Usage_SF_icon.png"
+                  "qUrl": "/api/v1/apps/c5e9283a-23f6-4a2d-8fb1-e27a5e6fd022/media/files/Usage_SF_icon.png"
                 }
               }
             },
