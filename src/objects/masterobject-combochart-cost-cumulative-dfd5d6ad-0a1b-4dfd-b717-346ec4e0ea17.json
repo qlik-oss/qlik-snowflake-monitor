@@ -1,0 +1,495 @@
+{
+  "qInfo": {
+    "qId": "dfd5d6ad-0a1b-4dfd-b717-346ec4e0ea17",
+    "qType": "masterobject"
+  },
+  "qMetaDef": {
+    "title": "Cost Cumulative",
+    "description": "",
+    "tags": []
+  },
+  "qHyperCubeDef": {
+    "qDimensions": [
+      {
+        "qDef": {
+          "qGrouping": "N",
+          "qFieldDefs": [
+            "=[$(=$(v.Cost_Dynamic_dateDim))]"
+          ],
+          "qFieldLabels": [
+            "Dynamic Date"
+          ],
+          "qSortCriterias": [
+            {
+              "qSortByNumeric": 1,
+              "qSortByAscii": 1,
+              "qSortByLoadOrder": 1,
+              "qExpression": {}
+            }
+          ],
+          "qNumberPresentations": [],
+          "qActiveField": 0,
+          "autoSort": true,
+          "cId": "ruvXxWb",
+          "othersLabel": "Others"
+        },
+        "qOtherTotalSpec": {
+          "qOtherMode": "OTHER_OFF",
+          "qOtherCounted": {
+            "qv": "10"
+          },
+          "qOtherLimit": {
+            "qv": "0"
+          },
+          "qOtherLimitMode": "OTHER_GE_LIMIT",
+          "qForceBadValueKeeping": true,
+          "qApplyEvenWhenPossiblyWrongResult": true,
+          "qOtherSortMode": "OTHER_SORT_DESCENDING",
+          "qTotalMode": "TOTAL_OFF",
+          "qReferencedExpression": {}
+        },
+        "qOtherLabel": {
+          "qv": "Others"
+        },
+        "qTotalLabel": {},
+        "qCalcCond": {},
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "othersLabel": "Others"
+      }
+    ],
+    "qMeasures": [
+      {
+        "qDef": {
+          "qLabel": "''$(=$(v.Cost_time_selector_partial_period))'",
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "RangeSum(Above(If(Count([$(=Replace(GetObjectField(0),']',']]'))]) \u003e 0,  (　{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_partial_period))'}, COST_DATE={\"\u003c$(=Today())\"}\u003e} [Total cost / credits]　)  + Sum({1\u003c[$(=Replace(GetObjectField(0),']',']]'))]={\"=Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003e='$(=Replace(Replace(MinString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))' and Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003c='$(=Replace(Replace(MaxString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))'\"}\u003e}0), 0), 0, RowNo()))",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 2,
+            "qUseThou": 0,
+            "qDec": ".",
+            "qThou": ","
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "qLabelExpression": "='$(=$(v.Cost_time_selector_partial_period))",
+          "autoSort": true,
+          "cId": "BQWacf",
+          "numFormatFromTemplate": true,
+          "series": {
+            "type": "bar",
+            "axis": 0
+          },
+          "color": {
+            "on": true,
+            "mode": "primary",
+            "paletteColor": {
+              "index": -1,
+              "color": "#249edc"
+            }
+          },
+          "modifiers": [
+            {
+              "type": "accumulation",
+              "disabled": false,
+              "accumulationDimension": 0,
+              "crossAllDimensions": false,
+              "showExcludedValues": true,
+              "fullAccumulation": true,
+              "steps": 19,
+              "outputExpression": "RangeSum(Above(If(Count([$(=Replace(GetObjectField(0),']',']]'))]) \u003e 0,  (　{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_partial_period))'}, COST_DATE={\"\u003c$(=Today())\"}\u003e} [Total cost / credits]　)  + Sum({1\u003c[$(=Replace(GetObjectField(0),']',']]'))]={\"=Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003e='$(=Replace(Replace(MinString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))' and Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003c='$(=Replace(Replace(MaxString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))'\"}\u003e}0), 0), 0, RowNo()))",
+              "base": {
+                "qDef": "{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_partial_period))'}, COST_DATE={\"\u003c$(=Today())\"}\u003e} [Total cost / credits]\r\n",
+                "qLibraryId": "",
+                "qLabelExpression": "='$(=$(v.Cost_time_selector_partial_period))"
+              }
+            }
+          ],
+          "isCustomFormatted": false,
+          "base": {
+            "qDef": "{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_partial_period))'}, COST_DATE={\"\u003c$(=Today())\"}\u003e} [Total cost / credits]\r\n",
+            "qLibraryId": "",
+            "qLabelExpression": "='$(=$(v.Cost_time_selector_partial_period))"
+          }
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      },
+      {
+        "qDef": {
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "RangeSum(Above( (　{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_previous_period))'}\u003e} [Total cost / credits]　) , 0, RowNo()))",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 10,
+            "qUseThou": 0
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "qLabelExpression": "='$(=$(v.Cost_time_selector_previous_period))'",
+          "autoSort": true,
+          "cId": "ZWhJfu",
+          "numFormatFromTemplate": true,
+          "series": {
+            "type": "line",
+            "axis": 0
+          },
+          "color": {
+            "on": true,
+            "mode": "primary",
+            "paletteColor": {
+              "index": -1,
+              "color": "#1c345e"
+            }
+          },
+          "modifiers": [
+            {
+              "type": "accumulation",
+              "disabled": false,
+              "accumulationDimension": 0,
+              "crossAllDimensions": false,
+              "showExcludedValues": false,
+              "fullAccumulation": true,
+              "steps": 6,
+              "outputExpression": "RangeSum(Above( (　{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_previous_period))'}\u003e} [Total cost / credits]　) , 0, RowNo()))",
+              "base": {
+                "qDef": "{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_previous_period))'}\u003e} [Total cost / credits]",
+                "qLibraryId": "",
+                "qLabelExpression": "='$(=$(v.Cost_time_selector_previous_period))'"
+              }
+            }
+          ],
+          "base": {
+            "qDef": "{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_previous_period))'}\u003e} [Total cost / credits]",
+            "qLibraryId": "",
+            "qLabelExpression": "='$(=$(v.Cost_time_selector_previous_period))'"
+          }
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      }
+    ],
+    "qInterColumnSortOrder": [
+      0,
+      1,
+      2
+    ],
+    "qSuppressMissing": true,
+    "qInitialDataFetch": [
+      {
+        "qLeft": 0,
+        "qTop": 0,
+        "qWidth": 17,
+        "qHeight": 500
+      }
+    ],
+    "qReductionMode": "N",
+    "qMode": "S",
+    "qPseudoDimPos": -1,
+    "qNoOfLeftDims": -1,
+    "qMaxStackedCells": 5000,
+    "qCalcCond": {},
+    "qTitle": {},
+    "qCalcCondition": {
+      "qCond": {},
+      "qMsg": {}
+    },
+    "qColumnOrder": [],
+    "qExpansionState": [],
+    "qDynamicScript": [],
+    "columnOrder": [],
+    "qLayoutExclude": {
+      "qHyperCubeDef": {
+        "qDimensions": [],
+        "qMeasures": [],
+        "qInterColumnSortOrder": [],
+        "qInitialDataFetch": [],
+        "qReductionMode": "N",
+        "qMode": "S",
+        "qPseudoDimPos": -1,
+        "qNoOfLeftDims": -1,
+        "qMaxStackedCells": 5000,
+        "qCalcCond": {},
+        "qTitle": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qColumnOrder": [],
+        "qExpansionState": [],
+        "qDynamicScript": []
+      }
+    }
+  },
+  "script": "",
+  "refLine": {
+    "refLines": [],
+    "dimRefLines": [
+      {
+        "show": "",
+        "label": "Today",
+        "showLabel": true,
+        "refLineExpr": {
+          "value": {
+            "qValueExpression": {
+              "qExpr": "=$(=Max({\u003cREPORT_PERIOD_COST_DATE={'Today'}\u003e} [$(=$(v.Cost_Dynamic_dateDim))]))"
+            }
+          },
+          "label": {
+            "qStringExpression": {
+              "qExpr": "=$(=Max({\u003cREPORT_PERIOD_COST_DATE={'Today'}\u003e} [$(=$(v.Cost_Dynamic_dateDim))]))"
+            }
+          },
+          "stringValue": ""
+        },
+        "showValue": false,
+        "align": "center",
+        "paletteColor": {
+          "index": -1,
+          "color": "#babbbe"
+        },
+        "style": {
+          "lineThickness": 2,
+          "lineType": "8 4"
+        },
+        "coloredBackground": false,
+        "cId": "CjjZkN"
+      }
+    ],
+    "refLines2": []
+  },
+  "showTitles": true,
+  "title": "",
+  "subtitle": "",
+  "footnote": "",
+  "disableNavMenu": false,
+  "showDetails": true,
+  "showDetailsExpression": false,
+  "barGrouping": {
+    "grouping": "grouped"
+  },
+  "orientation": "vertical",
+  "scrollStartPos": 0,
+  "dataPoint": {
+    "showLabels": false,
+    "showSegmentLabels": false,
+    "showTotalLabels": true,
+    "show": false,
+    "showLineLabels": false,
+    "showBarLabels": false
+  },
+  "color": {
+    "auto": true,
+    "mode": "primary",
+    "formatting": {
+      "numFormatFromTemplate": true
+    },
+    "useBaseColors": "off",
+    "paletteColor": {
+      "index": 6
+    },
+    "useDimColVal": true,
+    "useMeasureGradient": true,
+    "persistent": false,
+    "expressionIsColor": true,
+    "expressionLabel": "",
+    "measureScheme": "sg",
+    "reverseScheme": false,
+    "dimensionScheme": "12",
+    "autoMinMax": true,
+    "measureMin": 0,
+    "measureMax": 10
+  },
+  "legend": {
+    "show": true,
+    "dock": "top",
+    "showTitle": false
+  },
+  "dimensionAxis": {
+    "continuousAuto": false,
+    "show": "labels",
+    "label": "auto",
+    "dock": "near",
+    "axisDisplayMode": "auto",
+    "maxVisibleItems": 10
+  },
+  "preferContinuousAxis": false,
+  "measureAxis": {
+    "min": 0,
+    "max": 10
+  },
+  "tooltip": {
+    "auto": true,
+    "hideBasic": false,
+    "chart": {
+      "style": {
+        "size": "medium"
+      }
+    },
+    "data": {},
+    "title": "",
+    "description": ""
+  },
+  "visualization": "combochart",
+  "version": "1.34.4",
+  "components": [
+    {
+      "key": "general"
+    },
+    {
+      "key": "bar",
+      "style": {
+        "width": 0.69
+      }
+    },
+    {
+      "key": "line",
+      "style": {
+        "dataPointSize": 10,
+        "lineThickness": 3,
+        "lineCurve": "linear"
+      }
+    },
+    {
+      "key": "axis"
+    },
+    {
+      "key": "legend"
+    }
+  ],
+  "showMiniChartForContinuousAxis": true,
+  "nullMode": "gap",
+  "measureAxes": [
+    {
+      "show": "labels",
+      "dock": "near",
+      "spacing": 1,
+      "autoMinMax": true,
+      "minMax": "min",
+      "min": 0,
+      "max": 10,
+      "logarithmic": false
+    },
+    {
+      "show": "all",
+      "dock": "far",
+      "spacing": 1,
+      "autoMinMax": true,
+      "minMax": "min",
+      "min": 0,
+      "max": 10
+    }
+  ],
+  "qLayoutExclude": {
+    "disabled": {
+      "qExtendsId": "",
+      "showDisclaimer": true,
+      "scrollbar": "none",
+      "gridLine": {
+        "auto": true,
+        "spacing": 2
+      },
+      "measureAxis": {
+        "show": "all",
+        "dock": "near",
+        "spacing": 1,
+        "autoMinMax": true,
+        "minMax": "min",
+        "min": 0,
+        "max": 10
+      }
+    },
+    "quarantine": {
+      "conditionalShowHide": {
+        "measures": {
+          "Sctyd": {
+            "qCond": {
+              "qv": ""
+            },
+            "qMsg": {
+              "qv": ""
+            }
+          }
+        },
+        "dimensions": {
+          "ruvXxWb": {
+            "qCond": {
+              "qv": ""
+            },
+            "qMsg": {
+              "qv": ""
+            }
+          }
+        }
+      }
+    }
+  },
+  "masterVersion": 0.96
+}

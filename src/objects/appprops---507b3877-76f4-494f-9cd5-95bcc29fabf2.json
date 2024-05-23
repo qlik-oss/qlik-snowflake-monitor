@@ -1,0 +1,26 @@
+{
+  "qInfo": {
+    "qId": "507b3877-76f4-494f-9cd5-95bcc29fabf2",
+    "qType": "appprops"
+  },
+  "qMetaDef": {},
+  "sheetTitleBgColor": {
+    "color": "#1c345e",
+    "index": -1
+  },
+  "sheetTitleGradientColor": {
+    "color": "#1c345e",
+    "index": -1
+  },
+  "sheetTitleColor": "#ffffff",
+  "sheetLogoThumbnail": {
+    "qStaticContentUrlDef": {
+      "qUrl": "/api/v1/apps/28409df3-f2f9-4cc7-b92f-730084ab9e4c/media/files/snowflake_logo_white small .png"
+    }
+  },
+  "sheetLogoPosition": "",
+  "rtl": false,
+  "theme": "sense",
+  "disableCellNavMenu": false,
+  "chartAnimations": true
+}

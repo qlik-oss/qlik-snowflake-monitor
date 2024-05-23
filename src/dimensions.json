@@ -1,0 +1,242 @@
+[
+  {
+    "qInfo": {
+      "qId": "SvUjkZ",
+      "qType": "dimension"
+    },
+    "qDim": {
+      "qGrouping": "N",
+      "qFieldDefs": [
+        "GRANTED_ON"
+      ],
+      "qFieldLabels": [
+        "GRANTED_ON"
+      ],
+      "title": "GRANTED_ON",
+      "coloring": {
+        "changeHash": "0.8833593240293518",
+        "hasValueColors": true,
+        "colorMapRef": "SvUjkZ"
+      }
+    },
+    "qMetaDef": {
+      "title": "GRANTED_ON",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "DpejkHp",
+      "qType": "dimension"
+    },
+    "qDim": {
+      "qGrouping": "H",
+      "qFieldDefs": [
+        "=SERVICE_TYPE_CATEGORY",
+        "=SERVICE_TYPE"
+      ],
+      "qFieldLabels": [],
+      "title": "Cost Category",
+      "coloring": {
+        "changeHash": "0.717408986284769",
+        "hasValueColors": false
+      }
+    },
+    "qMetaDef": {
+      "title": "Cost Category",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "HqNVwD",
+      "qType": "dimension"
+    },
+    "qDim": {
+      "qGrouping": "N",
+      "qFieldDefs": [
+        "=ROLE_NAME"
+      ],
+      "qFieldLabels": [
+        "SEC - Your Roles"
+      ],
+      "qLabelExpression": "='Roles'",
+      "title": "SEC - Your Roles",
+      "coloring": {
+        "changeHash": "0.7874950381225143",
+        "hasValueColors": false,
+        "colorMapRef": "HqNVwD"
+      }
+    },
+    "qMetaDef": {
+      "title": "SEC - Your Roles",
+      "description": "",
+      "tags": [
+        "Roles",
+        "Security"
+      ]
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "JpcgN",
+      "qType": "dimension"
+    },
+    "qDim": {
+      "qGrouping": "N",
+      "qFieldDefs": [
+        "=USER_NAME"
+      ],
+      "qFieldLabels": [
+        "SEC - Usernames"
+      ],
+      "qLabelExpression": "='Users'",
+      "title": "SEC - Usernames",
+      "coloring": {
+        "changeHash": "0.2573166732797556",
+        "hasValueColors": false,
+        "colorMapRef": "JpcgN"
+      }
+    },
+    "qMetaDef": {
+      "title": "SEC - Usernames",
+      "description": "",
+      "tags": [
+        "Security",
+        "Users"
+      ]
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "DPRnAM",
+      "qType": "dimension"
+    },
+    "qDim": {
+      "qGrouping": "H",
+      "qFieldDefs": [
+        "DATABASE_NAME",
+        "SCHEMA_NAME",
+        "TABLE_NAME",
+        "COLUMN_NAME"
+      ],
+      "qFieldLabels": [],
+      "title": "Inventory Drilldown",
+      "coloring": {
+        "changeHash": "0.5126008656707439",
+        "hasValueColors": false
+      }
+    },
+    "qMetaDef": {
+      "title": "Inventory Drilldown",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "d97f0105-3b0c-46dd-8914-842a6c6e2f97",
+      "qType": "dimension"
+    },
+    "qDim": {
+      "qGrouping": "N",
+      "qFieldDefs": [
+        "TABLE_NAME"
+      ],
+      "qFieldLabels": [
+        "Table"
+      ],
+      "title": "Table",
+      "coloring": {
+        "colorMapRef": "nUbAg",
+        "changeHash": "0.47655253211501725",
+        "hasValueColors": false
+      }
+    },
+    "qMetaDef": {
+      "title": "Table",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "2e91882e-cb4c-45d8-b1bc-d414c70d7efe",
+      "qType": "dimension"
+    },
+    "qDim": {
+      "qGrouping": "N",
+      "qFieldDefs": [
+        "SCHEMA_NAME"
+      ],
+      "qFieldLabels": [
+        "Schema"
+      ],
+      "title": "Schema",
+      "coloring": {
+        "colorMapRef": "nUbAg",
+        "changeHash": "0.41756436926053575",
+        "hasValueColors": false
+      }
+    },
+    "qMetaDef": {
+      "title": "Schema",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "nUbAg",
+      "qType": "dimension"
+    },
+    "qDim": {
+      "qGrouping": "N",
+      "qFieldDefs": [
+        "=DATABASE_NAME"
+      ],
+      "qFieldLabels": [
+        "Database"
+      ],
+      "title": "Database",
+      "coloring": {
+        "changeHash": "0.36736566346495403",
+        "hasValueColors": false
+      }
+    },
+    "qMetaDef": {
+      "title": "Database",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "bnCJfJ",
+      "qType": "dimension"
+    },
+    "qDim": {
+      "qGrouping": "N",
+      "qFieldDefs": [
+        "=[$(=left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1) \u0026 '_TYPE')]"
+      ],
+      "qFieldLabels": [
+        "Dynamic Inventory Type Dimension"
+      ],
+      "qLabelExpression": "$(=left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1) \u0026 '_TYPE')",
+      "title": "Dynamic Inventory Type Dimension",
+      "coloring": {
+        "changeHash": "0.21781270834211153",
+        "hasValueColors": false,
+        "colorMapRef": "bnCJfJ"
+      }
+    },
+    "qMetaDef": {
+      "title": "Dynamic Inventory Type Dimension",
+      "description": "",
+      "tags": []
+    }
+  }
+]

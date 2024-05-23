@@ -1,0 +1,337 @@
+{
+  "qInfo": {
+    "qId": "9b8403ca-f537-4f28-b160-d594c2ca3b85",
+    "qType": "masterobject"
+  },
+  "qMetaDef": {
+    "title": "Creation of new users",
+    "description": "",
+    "tags": []
+  },
+  "qHyperCubeDef": {
+    "qDimensions": [
+      {
+        "qDef": {
+          "qGrouping": "N",
+          "qFieldDefs": [
+            "=[USER_CREATED_ON.CALENDAR.MonthYear]"
+          ],
+          "qFieldLabels": [
+            "User created month"
+          ],
+          "qSortCriterias": [
+            {
+              "qSortByNumeric": 1,
+              "qSortByAscii": 1,
+              "qSortByLoadOrder": 1,
+              "qExpression": {}
+            }
+          ],
+          "qNumberPresentations": [],
+          "qActiveField": 0,
+          "autoSort": true,
+          "cId": "YTpmXp",
+          "othersLabel": "Others",
+          "forecast": {
+            "stepSize": "days",
+            "steps": 180
+          }
+        },
+        "qOtherTotalSpec": {
+          "qOtherMode": "OTHER_OFF",
+          "qOtherCounted": {
+            "qv": "10"
+          },
+          "qOtherLimit": {
+            "qv": "0"
+          },
+          "qOtherLimitMode": "OTHER_GE_LIMIT",
+          "qForceBadValueKeeping": true,
+          "qApplyEvenWhenPossiblyWrongResult": true,
+          "qOtherSortMode": "OTHER_SORT_DESCENDING",
+          "qTotalMode": "TOTAL_OFF",
+          "qReferencedExpression": {}
+        },
+        "qOtherLabel": {
+          "qv": "Others"
+        },
+        "qTotalLabel": {},
+        "qCalcCond": {},
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        }
+      }
+    ],
+    "qMeasures": [
+      {
+        "qDef": {
+          "qLabel": "# users",
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "RangeSum(Above(If(Count([$(=Replace(GetObjectField(0),']',']]'))]) \u003e 0,  (　COUNT({\u003cFLAG_USER_ACTIVE={1}\u003e} DISTINCT USER_ID)　)  + Sum({1\u003c[$(=Replace(GetObjectField(0),']',']]'))]={\"=Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003e='$(=Replace(Replace(MinString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))' and Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003c='$(=Replace(Replace(MaxString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))'\"}\u003e}0), 0), 0, RowNo()))",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 10,
+            "qUseThou": 0
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "autoSort": true,
+          "cId": "Parzuz",
+          "numFormatFromTemplate": true,
+          "styling": [],
+          "forecast": {
+            "enabled": true,
+            "method": "ols_forecast",
+            "paletteColor": {
+              "index": -1,
+              "color": "#CAE7F6"
+            },
+            "lineThickness": 3,
+            "lineType": "dashed",
+            "lineCurve": "linear",
+            "showConfidence": true,
+            "confidence": 0.95
+          },
+          "modifiers": [
+            {
+              "type": "accumulation",
+              "disabled": false,
+              "accumulationDimension": 0,
+              "crossAllDimensions": false,
+              "showExcludedValues": true,
+              "fullAccumulation": true,
+              "steps": 6,
+              "outputExpression": "RangeSum(Above(If(Count([$(=Replace(GetObjectField(0),']',']]'))]) \u003e 0,  (　COUNT({\u003cFLAG_USER_ACTIVE={1}\u003e} DISTINCT USER_ID)　)  + Sum({1\u003c[$(=Replace(GetObjectField(0),']',']]'))]={\"=Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003e='$(=Replace(Replace(MinString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))' and Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003c='$(=Replace(Replace(MaxString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))'\"}\u003e}0), 0), 0, RowNo()))",
+              "base": {
+                "qDef": "COUNT({\u003cFLAG_USER_ACTIVE={1}\u003e} DISTINCT USER_ID)",
+                "qLibraryId": "",
+                "qLabel": "# users",
+                "qLabelExpression": ""
+              }
+            }
+          ],
+          "base": {
+            "qDef": "COUNT({\u003cFLAG_USER_ACTIVE={1}\u003e} DISTINCT USER_ID)",
+            "qLibraryId": "",
+            "qLabel": "# users",
+            "qLabelExpression": ""
+          }
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [
+          {
+            "qAttribute": true,
+            "id": "forecast"
+          },
+          {
+            "qAttribute": true,
+            "id": "forecast_lower"
+          },
+          {
+            "qAttribute": true,
+            "id": "forecast_upper"
+          }
+        ],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      }
+    ],
+    "qInterColumnSortOrder": [
+      0,
+      1
+    ],
+    "qSuppressMissing": true,
+    "qInitialDataFetch": [
+      {
+        "qLeft": 0,
+        "qTop": 0,
+        "qWidth": 17,
+        "qHeight": 500
+      }
+    ],
+    "qReductionMode": "N",
+    "qMode": "S",
+    "qPseudoDimPos": -1,
+    "qNoOfLeftDims": -1,
+    "qAlwaysFullyExpanded": true,
+    "qMaxStackedCells": 5000,
+    "qCalcCond": {},
+    "qTitle": {},
+    "qCalcCondition": {
+      "qCond": {},
+      "qMsg": {}
+    },
+    "qColumnOrder": [],
+    "qExpansionState": [],
+    "qDynamicScript": [
+      "add load\n        \"Time Stamp\" as #hc1.dimension.1,\n        Forecast as #hc1.measure.1.attribute.1\n        Extension qlikml.ScriptEval('\n          {\n            \"RequestType\": \"ols_forecast\",\n            \"ReturnType\": \"forecast\",\n            \"ConfidenceLevel\": 0.95,\n            \"Horizon\": \"180 days\",\n            \"TimeStep\": \"1 days\",\n            \"InterpolateNanValues\": \"true\",\n            \"ShouldCache\": \"false\"\n          }', HC1{#hc1.dimension.1, #hc1.measure.1});"
+    ],
+    "qLayoutExclude": {
+      "qHyperCubeDef": {
+        "qDimensions": [],
+        "qMeasures": [],
+        "qInterColumnSortOrder": [],
+        "qInitialDataFetch": [],
+        "qReductionMode": "N",
+        "qMode": "S",
+        "qPseudoDimPos": -1,
+        "qNoOfLeftDims": -1,
+        "qMaxStackedCells": 5000,
+        "qCalcCond": {},
+        "qTitle": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qColumnOrder": [],
+        "qExpansionState": [],
+        "qDynamicScript": []
+      }
+    }
+  },
+  "script": "",
+  "refLine": {
+    "refLines": [],
+    "dimRefLines": []
+  },
+  "showTitles": true,
+  "title": "Creation of new users",
+  "subtitle": "",
+  "footnote": "",
+  "disableNavMenu": false,
+  "showDetails": true,
+  "showDetailsExpression": false,
+  "showDisclaimer": true,
+  "lineType": "area",
+  "stackedArea": false,
+  "separateStacking": true,
+  "orientation": "horizontal",
+  "scrollbar": "none",
+  "scrollStartPos": 0,
+  "nullMode": "gap",
+  "dataPoint": {
+    "show": false,
+    "showLabels": false
+  },
+  "maxNumPoints": 2000,
+  "maxNumLines": 12,
+  "gridLine": {
+    "auto": true,
+    "spacing": 2
+  },
+  "color": {
+    "auto": false,
+    "mode": "primary",
+    "formatting": {
+      "numFormatFromTemplate": true
+    },
+    "useBaseColors": "off",
+    "paletteColor": {
+      "index": -1,
+      "color": "#249edc"
+    },
+    "useDimColVal": true,
+    "useMeasureGradient": true,
+    "persistent": false,
+    "expressionIsColor": true,
+    "expressionLabel": "",
+    "measureScheme": "sg",
+    "reverseScheme": false,
+    "dimensionScheme": "12",
+    "autoMinMax": true,
+    "measureMin": 0,
+    "measureMax": 10
+  },
+  "legend": {
+    "show": true,
+    "dock": "auto",
+    "showTitle": true
+  },
+  "dimensionAxis": {
+    "continuousAuto": false,
+    "show": "labels",
+    "label": "auto",
+    "dock": "near",
+    "axisDisplayMode": "auto",
+    "maxVisibleItems": 10
+  },
+  "preferContinuousAxis": true,
+  "measureAxis": {
+    "show": "labels",
+    "dock": "near",
+    "spacing": 1,
+    "autoMinMax": true,
+    "minMax": "min",
+    "min": 0,
+    "max": 10,
+    "logarithmic": false
+  },
+  "tooltip": {
+    "auto": true,
+    "hideBasic": false,
+    "chart": {
+      "style": {
+        "size": "medium"
+      }
+    },
+    "title": "",
+    "description": ""
+  },
+  "visualization": "linechart",
+  "version": "1.30.6",
+  "components": [
+    {
+      "key": "general"
+    },
+    {
+      "key": "line",
+      "style": {
+        "lineThickness": 3,
+        "lineCurve": "monotone"
+      }
+    },
+    {
+      "key": "axis"
+    },
+    {
+      "key": "label"
+    },
+    {
+      "key": "legend"
+    }
+  ],
+  "showMiniChartForContinuousAxis": true,
+  "masterVersion": 0.96
+}

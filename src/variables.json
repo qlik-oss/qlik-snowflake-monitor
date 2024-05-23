@@ -1,0 +1,893 @@
+[
+  {
+    "qInfo": {
+      "qId": "e4c94206-a33e-43f6-a109-a67e688b5d4e",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "p.Inventory_Report_period",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "[$(='REPORT_PERIOD_' \u0026 left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1) \u0026 '_CREATED_DATE')]",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "46107789-94e5-4eee-8228-f48d258f8f07",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "vL.Today_Num",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "45257"
+  },
+  {
+    "qInfo": {
+      "qId": "50e77a8d-934e-4e9c-a126-6a4fd66a2ad9",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Colour_LightGrey",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "#dcddde",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "f2f0a0ea-cef3-4a9e-a575-8552e21cc13a",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_time_selector_partial_period",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick($(v.Cost_time_selector), 'Current month to date', 'Current quarter to date', 'Current year to date')",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "485e1528-02ae-4de1-be07-41e32943188a",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_dimension_dropdown",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "'USER_NAME'",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "a1d942d6-3ce8-4ca1-878d-e2d5c143fd48",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Colour_SnowflakeBlue",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "#249EDC",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "158149b2-9e74-421c-915c-a7f7bedd582c",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Storage_Size_Calculator",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "if($(=SUM({\u003cFLAG_TABLE_DELETED={0}\u003e} DISTINCT TABLE_BYTES)) \u003c 1000000000, dual('MB', 1000000),\r\nif($(=SUM({\u003cFLAG_TABLE_DELETED={0}\u003e} DISTINCT TABLE_BYTES)) \u003c 1000000000000, dual ('GB', 1000000000),\nif($(=SUM({\u003cFLAG_TABLE_DELETED={0}\u003e} DISTINCT TABLE_BYTES)) \u003c 1000000000000000, dual ('TB', 1000000000000), dual('PB', 1000000000000000))))",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "20a187ee-e9d0-4736-a2fc-43d7db0225dd",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Costs_comparator1",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick(match('$(=$(v.Cost_time_selector_partial_period))', 'Current month to date','Current quarter to date','Current year to date'), 'Last month to date','Last quarter to date','Last year to date')",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "159a5f1a-5203-4f6a-94e4-82538f84d782",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_Dynamic_dateDim",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick($(v.Cost_time_selector),'COST_DATE.CALENDAR.DayOfMonth','COST_DATE.CALENDAR.WeekofQuarter','COST_DATE.CALENDAR.Month')\r\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "77aa0644-2fc4-4504-8c02-87a35244115b",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_Dynamic_dateDim2",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick($(v.Cost_time_selector),'COST_DATE.CALENDAR.DayMonth','COST_DATE.CALENDAR.WeekofQuarterQuarterYear','COST_DATE.CALENDAR.MonthYear')",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "cd4bd8d4-e441-4051-9233-62d3245a7a14",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.ActiveSheet",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "Overview",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "c72e5c71-629c-438f-8df1-de587d3ed9e9",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Costs_Dynamic_reporting_period",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "'Current month to date'",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "39ed9105-bb86-4aac-9362-a4cfd09f20aa",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Colour_SnowflakeLightBlue",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "#CAE7F6",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "2c6fc43f-af6b-4622-8fc8-db53b37c2c8a",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_date_label_partial_period",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick($(v.Cost_time_selector), \r\n\tMaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_partial_period))'}\u003e} COST_DATE.CALENDAR.Month) \u0026  ' - ' \u0026 MaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_partial_period))'}\u003e} COST_DATE.CALENDAR.Year),\n    MaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_partial_period))'}\u003e} COST_DATE.CALENDAR.Quarter) \u0026 ' - ' \u0026 MaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_partial_period))'}\u003e} COST_DATE.CALENDAR.Year),\n    MaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_partial_period))'}\u003e} COST_DATE.CALENDAR.Year))",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "7474f85b-f84c-4b8f-9230-8904acd40602",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.C",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "$(=$(v.AvgY($1, $2))) - $(=($(=$(v.M($1, $2))) * $(=$(v.AvgX($1, $2)))))",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "1f7e8c2f-c01a-464b-8b7e-fa7d4c133171",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "p.Inventory_CreatedDate",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "[$(='REPORT_PERIOD_' \u0026 left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1) \u0026 '_CREATED_DATE')]",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "1448f76e-5de2-4d30-9375-512893e39fa4",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.M_T",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "$(=$(v.M_Numerator_T)) / $(=$(v.M_Denominator_T))\r\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "1d917e57-42bf-4c7a-8330-9ce14eb08ebd",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Inventory_container_switch",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "1",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "92997fc9-ecd8-41f8-8bcd-0a04830c1d2e",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Inventory_Dropdown",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "Databases",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "fe4a5118-297b-44fe-a486-5b8d8398a30b",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.AvgX",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "Avg({\u003c$1={*}\u003e} $2)\r\n\n// Avg({\u003c[DATABASE_ID]={*}\u003e} Distinct [DATABASE_CREATED_DATE.CALENDAR.MonthsFromStart])",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "9048543b-d9c2-4f81-b768-b1af23dd4149",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.AvgY_T",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "Avg(Aggr(Count({\u003c$(p.Inventory_ID)={\"=COUNT({\u003c$(p.Inventory_NotDeleted)={0}\u003e} distinct $(p.Inventory_ID)) \u003e 0\"}\u003e} DISTINCT $(p.Inventory_ID)),$(p.Inventory_Calendar_DatePeriod)))\r\n\n\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "3881fdc9-7eec-449e-b3f8-e9a7e7022dba",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "varMinDate",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "7c028378-918d-4fbd-89aa-4a67a98958b2",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Colour_Grey",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "#BABBBE",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "cdd8dcf6-d417-4f79-9ed7-99e1985084a7",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_date_label_full_period",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick($(v.Cost_time_selector), \r\n\tMaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_previous_period))'}\u003e} COST_DATE.CALENDAR.Month) \u0026  ' - ' \u0026 MaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_previous_period))'}\u003e} COST_DATE.CALENDAR.Year),\n    MaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_previous_period))'}\u003e} COST_DATE.CALENDAR.Quarter) \u0026 ' - ' \u0026 MaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_previous_period))'}\u003e} COST_DATE.CALENDAR.Year),\n    MaxString({\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Cost_time_selector_previous_period))'}\u003e} COST_DATE.CALENDAR.Year))",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "5b92b4c3-d1df-4324-8627-3a5187b250c5",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.LastLoaded",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "ReloadTime()\r\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "1cfa090f-4344-4f65-a7b8-82dae3bcdc52",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_Dollar_ComputeCredit_switch",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "COST",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "fc8cde1f-2c30-469c-b6d6-b496124653db",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Colour_SnowflakeDarkBlue",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "#1c345e",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "fac0ec25-850b-4d25-9bb9-5d7c4811785f",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Usage_containerSwitch_heatmap",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "1",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "1eafd5b5-a68b-4977-b9cd-fe0c36911748",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.M_Numerator",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "sum(Aggr((count({\u003c$1 = {*}\u003e} distinct $1) - $(=$(v.AvgY($1,$2)))) * ($2 - $(=$(v.AvgX($1,$2)))), $2))\r\n\n\n// sum(Aggr((count({\u003c[DATABASE_ID] = {*}\u003e} Distinct [DATABASE_ID]) - $(=$(v.AvgY))) * ([DATABASE_CREATED_DATE.CALENDAR.MonthsFromStart] - $(=$(v.AvgX))), [DATABASE_CREATED_DATE.CALENDAR.MonthsFromStart]))\n\n\n\n\n\n\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "0bcefffb-e9db-4b6b-93a2-457b1b45b691",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_containerSwitch",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "1",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "a9036500-f0e2-4e7a-88ce-a190796e7856",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_Dynamic_dateDim_budget_divisor",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick(match($(v.Costs_Dynamic_reporting_period),'Total','Current month to date','Current quarter to date','Current year to date'),4,365,52,12)",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "cf474351-bd5b-48f2-aedf-9a6b4c70d617",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Performance_containerSwitch",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "2",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "8d2d112e-910a-4e9b-9de7-7fd9b473cf68",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "DISABLE_INSIGHTS",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "1",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "15b2c15e-75bd-418c-a47e-66e23b56f34f",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "vL.MinDate",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "44682"
+  },
+  {
+    "qInfo": {
+      "qId": "3094cfe6-bff5-4ace-b4b1-864d9918ff2f",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.M_Denominator_T",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "sum({\u003c$(p.Inventory_ID)={\"=COUNT({\u003c$(p.Inventory_NotDeleted)={0}\u003e} distinct $(p.Inventory_ID)) \u003e 0\"}\u003e} Aggr(pow($(p.Inventory_Calendar_DatePeriod) - $(=$(v.AvgX_T)), 2),  $(p.Inventory_Calendar_DatePeriod)))\r\n\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "a6221c34-ad49-48d8-ad95-ab30e7ee5dcd",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_time_selector",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "1",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "1e711d08-222c-4737-bf45-330fd9f14924",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.M_Denominator",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "sum({\u003c$1 = {*}\u003e} Aggr(sum(pow($2 - $(=$(v.AvgX($1, $2))), 2)),  $2))\r\n\n\n//sum({\u003c[DATABASE_ID] = {*}\u003e} Aggr(sum(pow([DATABASE_CREATED_DATE.CALENDAR.MonthsFromStart] - $(=$(v.AvgX)), 2)),  [DATABASE_CREATED_DATE.CALENDAR.MonthsFromStart]))",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "f78a4d7c-be42-4b9d-9315-163d96aa8486",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.AvgX_T",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "Avg({\u003c$(p.Inventory_ID)={\"=count({\u003c$(p.Inventory_NotDeleted)={0}\u003e} $(p.Inventory_ID)) \u003e 0\"}\u003e}  DISTINCT $(p.Inventory_Calendar_DatePeriod))\r\n\n\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "404fe9f1-0eff-4e36-98b4-d96de9e3796d",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "vL.MAX_FROMS",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "12"
+  },
+  {
+    "qInfo": {
+      "qId": "53b106df-a2c5-42d8-b1ac-8078651c4a16",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Costs_comparator2",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "replace('$(=$(v.Cost_time_selector_previous_period))', 'Last','Previous')",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "a959943e-d1e3-4507-a66a-f8a010225986",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.M",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "$(=$(v.M_Numerator($1,$2))) / $(=$(v.M_Denominator($1,$2)))\r\n\n\n\n// $(=$(v.M_Numerator)) / $(=$(v.M_Denominator))\n\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "20362a83-6a19-45fc-a161-1f2ea86d0a03",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.AvgY",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "Avg({\u003c$1={*}\u003e} Aggr(Count(Distinct $1),$2)) \r\n//Avg({\u003c[DATABASE_ID]={*}\u003e} Aggr(Count(Distinct [DATABASE_ID]),[DATABASE_CREATED_DATE.CALENDAR.MonthsFromStart]))\n\n\n\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "39e50ff7-29f7-4d86-a300-b8ed25057325",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "vL.CostReportingPeriod_TimeDimension",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "Pick(Match(REPORT_PERIOD_COST_DATE, 'Current month to date'))",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "0b46a5db-09c4-4754-aeec-acd5f96f4cb6",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_ProRata_contract",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick($(v.Cost_time_selector),12,4,1)",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "193fa702-d752-45fb-aad4-341f0d59632d",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_current_date",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "'$(=left('$(=$(v.Cost_time_selector_partial_period))', len('$(=$(v.Cost_time_selector_partial_period))') - index('$(=$(v.Cost_time_selector_partial_period))',' ',)))'",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "0a55c6f4-6c2c-4752-af03-fd775008a24a",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_ProRata_contract2",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick($(v.Cost_time_selector),365,52,12)",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "c4a9db72-b475-4b61-bf56-dfdd93b4cb44",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Colour_QlikGreen",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "#009845",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "708e3d67-f537-4c9f-a97e-00a76e1b32b9",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "vL.Today",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "45258"
+  },
+  {
+    "qInfo": {
+      "qId": "1a0e2c7d-1ac3-4aaa-a761-59cdd7dca5d7",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "p.Inventory_NotDeleted",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "[$(='FLAG_' \u0026 left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1) \u0026 '_DELETED')]",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "301dc4db-2bb5-475c-9653-1f8b18010871",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.C_T",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "$(=$(v.AvgY_T)) - $(=$(v.M_T)) * $(=$(v.AvgX_T))",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "0b77fb8a-7274-41f5-9779-249d4fcb748b",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "vL.Min_Storage_Usage_Date",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "44865"
+  },
+  {
+    "qInfo": {
+      "qId": "18918fa1-b62e-4d25-adef-076a907d3985",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "p.Inventory_Calendar_DatePeriod",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "[$(=left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1) \u0026 '_CREATED_DATE.CALENDAR.MonthYear')]",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "b917e6ef-a519-4aa1-b102-10f6f34cb248",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_Dollar_ComputeCredit_switch_format",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick(match('$(v.Cost_Dollar_ComputeCredit_switch)','COST', 'DAILY_CREDITS_USED'),'$#,##0.00','#,##0.00')",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "01b95451-5071-4169-ac69-ae49bcfc56d8",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Usage_containerSwitch",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "1",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "f79b56e8-32e1-4f65-b564-401855b7c350",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "p.Inventory_ID",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "[$(=left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1) \u0026 '_ID')]",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "13174c4d-686a-4432-b64c-f343cea64525",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "varMaxDate",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "b7d29f06-4a89-4980-904d-2e3ba22c6b0f",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.M_Numerator_T",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "sum(\r\n\tAggr(\n    \t(count({\u003c$(p.Inventory_ID)={\"=COUNT({\u003c$(p.Inventory_NotDeleted)={0}\u003e} distinct $(p.Inventory_ID)) \u003e 0\"}\u003e} distinct $(p.Inventory_ID)) - $(=$(v.AvgY_T)))* (min({\u003c$(p.Inventory_ID)={\"=COUNT({\u003c$(p.Inventory_NotDeleted)={0}\u003e} distinct $(p.Inventory_ID)) \u003e 0\"}\u003e}$(p.Inventory_Calendar_DatePeriod)) - $(=$(v.AvgX_T)))\n        , $(p.Inventory_Calendar_DatePeriod)))\n\n\n",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "0910cde8-202b-4c28-9d5c-2e95d60c7737",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "p.InventoryTypeUpper",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "$(=left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1))",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "f1598907-5561-4c60-ac2a-8621356708b3",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Cost_time_selector_previous_period",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "pick($(v.Cost_time_selector), 'Last full month', 'Last full quarter', 'Last full year')",
+    "tags": []
+  },
+  {
+    "qInfo": {
+      "qId": "2a073635-ed3a-49e4-b235-97e9f47248b9",
+      "qType": "variable"
+    },
+    "qMetaDef": {},
+    "qName": "v.Security_containerSwitch",
+    "qNumberPresentation": {
+      "qType": "U",
+      "qnDec": 10,
+      "qUseThou": 0
+    },
+    "qDefinition": "1",
+    "tags": []
+  }
+]
