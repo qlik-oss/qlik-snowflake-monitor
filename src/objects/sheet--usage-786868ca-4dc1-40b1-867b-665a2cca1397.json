@@ -11,7 +11,7 @@
     "rank": 7,
     "thumbnail": {
       "qStaticContentUrlDef": {
-        "qUrl": "/api/v1/apps/eadd2980-54ef-4fb5-b2ef-07fdc173f2bd/media/files/Usage_tab.png"
+        "qUrl": "/api/v1/apps/28409df3-f2f9-4cc7-b92f-730084ab9e4c/media/files/Usage_tab.png"
       }
     },
     "columns": 84,
@@ -219,19 +219,6 @@
               "width": 72.34266,
               "x": 13.82867,
               "y": 1.44979
-            }
-          },
-          {
-            "childRefId": "pNKZrnYw",
-            "condition": {
-              "qValueExpression": {}
-            },
-            "label": "help video",
-            "bounds": {
-              "height": 3.76426,
-              "width": 64.21173,
-              "x": 17.89413,
-              "y": 71.02903
             }
           },
           {
@@ -477,7 +464,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/eadd2980-54ef-4fb5-b2ef-07fdc173f2bd/media/files/Usage_SF_icon.png"
+                  "qUrl": "/api/v1/apps/28409df3-f2f9-4cc7-b92f-730084ab9e4c/media/files/Usage_SF_icon.png"
                 }
               }
             },
@@ -606,113 +593,6 @@
             "visualization": "action-button",
             "version": "1.39.0",
             "childRefId": "pWpfsAAp"
-          },
-          "qChildren": []
-        },
-        {
-          "qProperty": {
-            "qInfo": {
-              "qId": "fba275ed-0258-4d76-ab58-904eb201b08b",
-              "qType": "action-button"
-            },
-            "qMetaDef": {},
-            "actions": [],
-            "navigation": {
-              "action": "openWebsite",
-              "appId": "",
-              "sheet": "",
-              "chartId": "",
-              "story": "",
-              "websiteUrl": {
-                "qStringExpression": {
-                  "qExpr": "='https://youtu.be/zuDNB0CtJ_8?t=19'"
-                }
-              },
-              "sameWindow": false,
-              "odagLink": ""
-            },
-            "useEnabledCondition": false,
-            "enabledCondition": 1,
-            "showTitles": false,
-            "title": "",
-            "subtitle": "",
-            "footnote": "",
-            "disableNavMenu": true,
-            "showDetails": false,
-            "showDetailsExpression": false,
-            "style": {
-              "label": "Help video",
-              "showLabel": true,
-              "font": {
-                "size": 0.63,
-                "useColorExpression": false,
-                "color": {
-                  "index": 14,
-                  "color": "#545352"
-                },
-                "colorExpression": "",
-                "style": {
-                  "bold": true,
-                  "italic": false,
-                  "underline": false
-                },
-                "align": "center",
-                "fontFamily": "QlikView Sans, sans-serif",
-                "sizeFixed": 20,
-                "sizeBehavior": "responsive"
-              },
-              "background": {
-                "useColorExpression": false,
-                "color": {
-                  "index": 1,
-                  "color": "#ffffff"
-                },
-                "colorExpression": "",
-                "useImage": false,
-                "size": "auto",
-                "position": "centerCenter",
-                "mode": "none",
-                "url": {
-                  "qStaticContentUrlDef": {}
-                }
-              },
-              "border": {
-                "useBorder": true,
-                "radius": 0.04,
-                "width": 0,
-                "useColorExpression": false,
-                "color": {
-                  "index": 13,
-                  "color": "#7b7a78"
-                },
-                "colorExpression": ""
-              },
-              "icon": {
-                "useIcon": true,
-                "iconType": "play",
-                "position": "left"
-              }
-            },
-            "components": [
-              {
-                "key": "general",
-                "bgColor": {
-                  "color": {
-                    "index": 1,
-                    "color": "#ffffff"
-                  }
-                },
-                "borderWidth": "1px",
-                "borderRadius": "1px",
-                "borderColor": {
-                  "index": 12,
-                  "color": "#b0afae"
-                }
-              }
-            ],
-            "visualization": "action-button",
-            "version": "1.39.0",
-            "childRefId": "pNKZrnYw"
           },
           "qChildren": []
         },

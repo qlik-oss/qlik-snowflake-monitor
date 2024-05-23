@@ -11,7 +11,7 @@
     "rank": 11,
     "thumbnail": {
       "qStaticContentUrlDef": {
-        "qUrl": "/api/v1/apps/eadd2980-54ef-4fb5-b2ef-07fdc173f2bd/media/files/Information_tab.png"
+        "qUrl": "/api/v1/apps/28409df3-f2f9-4cc7-b92f-730084ab9e4c/media/files/Information_tab.png"
       }
     },
     "columns": 84,
@@ -64,12 +64,12 @@
         "type": "text-image",
         "col": 2,
         "row": 19,
-        "colspan": 79,
+        "colspan": 80,
         "rowspan": 19,
         "bounds": {
           "y": 45.23809523809524,
           "x": 2.380952380952381,
-          "width": 94.04761904761905,
+          "width": 95.23809523809523,
           "height": 45.23809523809524
         }
       },
@@ -367,7 +367,7 @@
           }
         ],
         "responsive": "text",
-        "markdown": "%[Welcome to you Qlik Snowflake Monitoring app! ](4)^[%[\n](4)](inherit)^[%[Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n](4)](inherit)^[%[\n](4)](inherit)^[%[Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.](4)%[\n](4)](inherit)",
+        "markdown": "%[Welcome to you Qlik Snowflake Monitoring app! ](4)^[%[\n](4)](inherit)^[%[For installation, upgrades, and issues please visit the @[source repository](https://github.com/qlik\\-oss/qlik\\-snowflake\\-monitor). ](4)](inherit)",
         "images": [],
         "background": {
           "isUsed": false,
@@ -454,7 +454,7 @@
           }
         ],
         "responsive": "text",
-        "markdown": "^[\n](inherit)^[Cost Apportionment Logic: To give a greater depth of cost analysis we use logic to apportion cost by query and aggregate back up from that to give detail splits of where costs hotspots are. The billing data from snowflake is by day, by hour, by warehouse. We look at the warehouse ‘sessions’ or time the warehouse has been on, and allocate this to one or more billing hours in that day. We then split the cost of hour, by time proportion of all warehouse’s sessions in that hour. Within each warehouse session there are queries ran in that billing hour. Will repeat the logic and generate a time share % of that query within that warehouse session in that hour.  You then end up with a \\-   Credits Used in Hour \\* Warehouse Cost Split % \\* Query Cost Split % = Query Cost.\n](inherit)^[%[\n](4)](inherit)^[%[Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.](4)%[\n](4)](inherit)",
+        "markdown": "^[\n](inherit)^[Cost Apportionment Logic: To give a greater depth of cost analysis we use logic to apportion cost by query and aggregate back up from that to give detail splits of where costs hotspots are. The billing data from snowflake is by day, by hour, by warehouse. We look at the warehouse ‘sessions’ or time the warehouse has been on, and allocate this to one or more billing hours in that day. We then split the cost of hour, by time proportion of all warehouse’s sessions in that hour. Within each warehouse session there are queries ran in that billing hour. Will repeat the logic and generate a time share % of that query within that warehouse session in that hour.  You then end up with a \\-   Credits Used in Hour \\* Warehouse Cost Split % \\* Query Cost Split % = Query Cost.\n](inherit)^[\n](inherit)",
         "images": [],
         "background": {
           "isUsed": false,
