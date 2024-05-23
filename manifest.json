@@ -3,7 +3,7 @@
         "id": 1,
         "name": "Qlik Snowflake Monitor",
         "version": "v1.0.0",
-        "source": "https://github.com/qlik-oss/qlik-snowflake-monitor/releases/download/v1.0.0/Qlik.Snowflake.Monitor.qvf",
+        "source": "https://github.com/qlik-oss/qlik-snowflake-monitor/releases/download/v1.0.0/QlikSnowflakeMonitor.qvf",
         "subscriptionTypes": ["capacity","user"]
     }
 ]
