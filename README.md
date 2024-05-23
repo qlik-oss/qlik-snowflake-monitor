@@ -17,7 +17,7 @@ Leveraging Qlik Sense, this app uncovers invaluable insights about your Snowflak
     - [Create a Snowflake Connection](https://help.qlik.com/en-US/connectors/Subsystems/ODBC_connector_help/Content/Connectors_ODBC/Snowflake/Create-Snowflake-connection.htm) to the warehouse: `USER: QLIK_MONITORING | ROLE: QLIK_MONITORING_ROLE | WAREHOUSE: MONITORING_WH` which was created by the SQL script you ran in step 2.
     - Save the connection with name `SNOWFLAKE_MONITORING_DATA`.
     - ![Snowflake Settings](/images/screenshot_snowflake_connection.png)
-4. Create a REST Connection 
+4. Create a REST Connection:
     * Configure target URL: `https://github.com/qlik-oss/qlik-snowflake-monitor/raw/main/manifest.json`.
     * Check the `Allow WITH CONNECTION` checkbox.
     * Save the connection with name `REST Monitoring Versioning API`.
