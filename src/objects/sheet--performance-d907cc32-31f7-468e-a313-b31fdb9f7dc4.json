@@ -11,7 +11,7 @@
     "rank": 8,
     "thumbnail": {
       "qStaticContentUrlDef": {
-        "qUrl": "/api/v1/apps/c5e9283a-23f6-4a2d-8fb1-e27a5e6fd022/media/files/Performance_tab.png"
+        "qUrl": "/api/v1/apps/276c0456-9448-4a8d-9f9e-cf4e543cccd9/media/files/Performance_tab.png"
       }
     },
     "columns": 84,
@@ -6145,7 +6145,7 @@
               "position": "centerCenter",
               "url": {
                 "qStaticContentUrlDef": {
-                  "qUrl": "/api/v1/apps/c5e9283a-23f6-4a2d-8fb1-e27a5e6fd022/media/files/Peformance_SF_icon.png"
+                  "qUrl": "/api/v1/apps/276c0456-9448-4a8d-9f9e-cf4e543cccd9/media/files/Peformance_SF_icon.png"
                 }
               }
             },
