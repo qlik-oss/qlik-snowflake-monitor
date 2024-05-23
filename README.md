@@ -11,8 +11,8 @@ Leveraging Qlik Sense, this app uncovers invaluable insights about your Snowflak
 
 ### Installation
 
-1. Install the Qlik Sense application into a monitoring space using the [guided interactive installer](https://community.qlik.com/t5/Official-Support-Articles/Installing-the-Qlik-Snowflake-Monitoring-application-in-Qlik/ta-p/2455224) within Qlik Application Automation, or by manually downloading the [Qlik Sense file](https://github.com/qlik-oss/qlik-snowflake-monitor/releases/latest/download/QlikSnowflakeMonitor.qvf) and importing it to your Qlik Cloud tenant.
-2. Set up a Snowflake Role/User & Warehouse for collecting monitoring data using the [snowflake monitoring SQL script](https://github.com/qlik-oss/qlik-snowflake-monitor/releases/latest/download/QlikSnowflakeMonitor.sql).
+1. Install the Qlik Sense application into a monitoring space using the [guided interactive installer](https://community.qlik.com/t5/Official-Support-Articles/Installing-the-Qlik-Snowflake-Monitoring-application-in-Qlik/ta-p/2455224) within Qlik Application Automation, or by manually downloading the [Qlik Sense file](/app/QlikSnowflakeMonitor.qvf) and importing it to your Qlik Cloud tenant.
+2. Set up a Snowflake Role/User & Warehouse for collecting monitoring data using the [snowflake monitoring SQL script](/resources/QlikSnowflakeMonitor.sql).
 3. Create a Data Connection to your Snowflake instance in the same space as the Snowflake Monitoring app was installed.
     - [Create a Snowflake Connection](https://help.qlik.com/en-US/connectors/Subsystems/ODBC_connector_help/Content/Connectors_ODBC/Snowflake/Create-Snowflake-connection.htm) to the warehouse: `USER: QLIK_MONITORING | ROLE: QLIK_MONITORING_ROLE | WAREHOUSE: MONITORING_WH` which was created by the SQL script you ran in step 2.
     - Save the connection with name `SNOWFLAKE_MONITORING_DATA`.
@@ -25,7 +25,7 @@ Leveraging Qlik Sense, this app uncovers invaluable insights about your Snowflak
 
 ### Updating
 
-Update the Qlik Sense application using the [guided interactive installer](https://community.qlik.com/t5/Official-Support-Articles/Installing-the-Qlik-Snowflake-Monitoring-application-in-Qlik/ta-p/2455224) within Qlik Application Automation, or by manually downloading the [Qlik Sense file](https://github.com/qlik-oss/qlik-snowflake-monitor/releases/latest/download/QlikSnowflakeMonitor.qvf) and importing it to your Qlik Cloud tenant into the existing space, and replacing any published copies.
+Update the Qlik Sense application using the [guided interactive installer](https://community.qlik.com/t5/Official-Support-Articles/Installing-the-Qlik-Snowflake-Monitoring-application-in-Qlik/ta-p/2455224) within Qlik Application Automation, or by manually downloading the [Qlik Sense file](/app/QlikSnowflakeMonitor.qvf) and importing it to your Qlik Cloud tenant into the existing space, and replacing any published copies.
 
 ## App Summary
 
