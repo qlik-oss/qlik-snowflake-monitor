@@ -1,7 +1,7 @@
 > [!IMPORTANT]
 > This is a preview, not all links will work with this release.
 
-> > [!IMPORTANT]
+> [!IMPORTANT]
 > This project is _community supported_. This means that you should not contact
 > Qlik Support for help with these apps. See below for additional information
 > on how to raise issues on this repository to ask for help.
