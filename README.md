@@ -5,7 +5,7 @@
 
 # Qlik Snowflake Monitor Application
 
-Leveraging Qlik Sense, this app uncovers invaluable insights about your Snowflake costs, usage, inventory, security, performance and contract utilization.
+Leveraging Qlik Sense, this app uncovers valuable insights about your Snowflake costs, usage, inventory, security, performance and contract utilization.
 
 ## Installing / Updating
 
