@@ -18,7 +18,7 @@ Leveraging Qlik Sense, this app uncovers valuable insights about your Snowflake 
     - Save the connection with name `SNOWFLAKE_MONITORING_DATA`.
     - ![Snowflake Settings](/images/screenshot_snowflake_connection.png)
 4. Create a REST Connection:
-    * Configure target URL: `https://github.com/qlik-oss/qlik-snowflake-monitor/raw/main/manifest.json`.
+    * Configure target URL: `https://raw.githubusercontent.com/qlik-oss/qlik-snowflake-monitor/main/manifest.json`.
     * Check the `Allow WITH CONNECTION` checkbox.
     * Save the connection with name `REST Monitoring Versioning API`.
     * ![REST Settings](/images/screenshot_rest_connection.png)
