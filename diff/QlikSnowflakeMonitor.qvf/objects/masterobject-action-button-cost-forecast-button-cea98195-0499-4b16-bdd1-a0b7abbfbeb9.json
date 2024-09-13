@@ -1,0 +1,121 @@
+{
+  "qInfo": {
+    "qId": "cea98195-0499-4b16-bdd1-a0b7abbfbeb9",
+    "qType": "masterobject"
+  },
+  "qMetaDef": {
+    "title": "Cost forecast button",
+    "description": "",
+    "tags": []
+  },
+  "actions": [
+    {
+      "actionLabel": "set container variable",
+      "actionType": "setVariable",
+      "bookmark": "",
+      "field": "",
+      "variable": "v.Cost_containerSwitch",
+      "showSystemVariables": false,
+      "softLock": false,
+      "value": "4",
+      "partial": false,
+      "automation": "",
+      "automationId": "",
+      "automationPostData": false,
+      "automationTriggered": false,
+      "automationShowNotification": false,
+      "automationNotificationDuration": 4,
+      "automationOpenLinkSameWindow": false,
+      "cId": "pEmjT"
+    }
+  ],
+  "navigation": {
+    "action": "none",
+    "appId": "",
+    "sheet": "69dacb07-65d8-4478-9f0f-eaaba01bcd94",
+    "chartId": "",
+    "story": "",
+    "websiteUrl": "",
+    "sameWindow": false,
+    "odagLink": ""
+  },
+  "useEnabledCondition": false,
+  "enabledCondition": 1,
+  "showTitles": false,
+  "title": "",
+  "subtitle": "",
+  "footnote": "",
+  "disableNavMenu": true,
+  "showDetails": false,
+  "showDetailsExpression": false,
+  "style": {
+    "label": "Cost forecast",
+    "showLabel": true,
+    "font": {
+      "size": 0.63,
+      "useColorExpression": true,
+      "color": {
+        "index": -1,
+        "color": "#ffffff"
+      },
+      "colorExpression": {
+        "qStringExpression": {
+          "qExpr": "if($(v.Cost_containerSwitch)=4,'#545352','#ffffff')\r\n"
+        }
+      },
+      "style": {
+        "bold": true,
+        "italic": false,
+        "underline": false
+      },
+      "align": "center",
+      "fontFamily": "Source Sans Pro",
+      "sizeFixed": 20,
+      "sizeBehavior": "responsive"
+    },
+    "background": {
+      "useColorExpression": true,
+      "color": {
+        "index": -1,
+        "color": "none"
+      },
+      "colorExpression": {
+        "qStringExpression": {
+          "qExpr": "if($(v.Cost_containerSwitch)=4,'$(v.Colour_SnowflakeLightBlue)','$(v.Colour_Grey)')"
+        }
+      },
+      "useImage": false,
+      "size": "auto",
+      "position": "centerCenter",
+      "mode": "none",
+      "url": {
+        "qStaticContentUrlDef": {}
+      }
+    },
+    "border": {
+      "useBorder": true,
+      "radius": 0.37,
+      "width": 0,
+      "useColorExpression": false,
+      "color": {
+        "index": -1,
+        "color": "none"
+      },
+      "colorExpression": ""
+    },
+    "icon": {
+      "useIcon": false,
+      "iconType": "home",
+      "position": "left"
+    }
+  },
+  "components": [
+    {
+      "key": "general"
+    }
+  ],
+  "visualization": "action-button",
+  "version": "1.37.1",
+  "appId": "66239064-ee7e-4987-bba8-b832eb2397ba",
+  "masterVersion": 0.96
+}

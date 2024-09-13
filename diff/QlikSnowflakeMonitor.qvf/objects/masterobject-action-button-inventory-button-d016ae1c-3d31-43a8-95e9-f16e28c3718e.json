@@ -1,0 +1,103 @@
+{
+  "qInfo": {
+    "qId": "d016ae1c-3d31-43a8-95e9-f16e28c3718e",
+    "qType": "masterobject"
+  },
+  "qMetaDef": {
+    "title": "Inventory Button",
+    "description": "Button to Navigate to the Inventory page",
+    "tags": [
+      "Button",
+      "Navigation"
+    ]
+  },
+  "actions": [],
+  "navigation": {
+    "action": "goToSheet",
+    "appId": "",
+    "sheet": "659c6ce4-fc8d-48dc-b37d-6a53baf01e25",
+    "story": "",
+    "websiteUrl": "",
+    "sameWindow": false,
+    "odagLink": ""
+  },
+  "useEnabledCondition": false,
+  "enabledCondition": 1,
+  "showTitles": false,
+  "title": "",
+  "subtitle": "",
+  "footnote": "",
+  "disableNavMenu": true,
+  "showDetails": false,
+  "showDetailsExpression": false,
+  "style": {
+    "label": "Inventory",
+    "showLabel": true,
+    "font": {
+      "size": 0.78,
+      "useColorExpression": false,
+      "color": {
+        "index": -1,
+        "color": "#ffffff"
+      },
+      "colorExpression": {
+        "qStringExpression": {
+          "qExpr": "if('$(v.ActiveSheet)'='Overview', '$(v.Colour_SnowflakeBlue)',rgb(186,187,190))"
+        }
+      },
+      "style": {
+        "bold": true,
+        "italic": false,
+        "underline": false
+      },
+      "align": "center",
+      "fontFamily": "Source Sans Pro",
+      "sizeFixed": 20,
+      "sizeBehavior": "responsive"
+    },
+    "background": {
+      "useColorExpression": true,
+      "color": {
+        "index": -1,
+        "color": "none"
+      },
+      "colorExpression": {
+        "qStringExpression": {
+          "qExpr": "if('$(v.ActiveSheet)'='Inventory', '$(v.Colour_SnowflakeBlue)',rgb(186,187,190))"
+        }
+      },
+      "useImage": false,
+      "size": "auto",
+      "position": "centerCenter",
+      "mode": "none",
+      "url": {
+        "qStaticContentUrlDef": {}
+      }
+    },
+    "border": {
+      "useBorder": true,
+      "radius": 0.37,
+      "width": 0,
+      "useColorExpression": false,
+      "color": {
+        "index": -1,
+        "color": "none"
+      },
+      "colorExpression": ""
+    },
+    "icon": {
+      "useIcon": false,
+      "iconType": "home",
+      "position": "left"
+    }
+  },
+  "components": [
+    {
+      "key": "general"
+    }
+  ],
+  "visualization": "action-button",
+  "version": "1.37.1",
+  "appId": "8b917b0b-50d6-432c-a761-990bf7b347e1",
+  "masterVersion": 0.96
+}

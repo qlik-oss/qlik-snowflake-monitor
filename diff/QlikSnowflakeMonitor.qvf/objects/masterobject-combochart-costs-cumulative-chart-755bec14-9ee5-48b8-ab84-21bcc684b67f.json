@@ -1,0 +1,496 @@
+{
+  "qInfo": {
+    "qId": "755bec14-9ee5-48b8-ab84-21bcc684b67f",
+    "qType": "masterobject"
+  },
+  "qMetaDef": {
+    "title": "Costs cumulative chart",
+    "description": "",
+    "tags": []
+  },
+  "qHyperCubeDef": {
+    "qDimensions": [
+      {
+        "qDef": {
+          "qGrouping": "N",
+          "qFieldDefs": [
+            "=[$(=$(v.Cost_Dynamic_dateDim))]"
+          ],
+          "qFieldLabels": [
+            "Dynamic Date"
+          ],
+          "qSortCriterias": [
+            {
+              "qSortByNumeric": 1,
+              "qSortByAscii": 1,
+              "qSortByLoadOrder": 1,
+              "qExpression": {}
+            }
+          ],
+          "qNumberPresentations": [],
+          "qActiveField": 0,
+          "autoSort": true,
+          "cId": "ruvXxWb",
+          "othersLabel": "Others"
+        },
+        "qOtherTotalSpec": {
+          "qOtherMode": "OTHER_OFF",
+          "qOtherCounted": {
+            "qv": "10"
+          },
+          "qOtherLimit": {
+            "qv": "0"
+          },
+          "qOtherLimitMode": "OTHER_GE_LIMIT",
+          "qForceBadValueKeeping": true,
+          "qApplyEvenWhenPossiblyWrongResult": true,
+          "qOtherSortMode": "OTHER_SORT_DESCENDING",
+          "qTotalMode": "TOTAL_OFF",
+          "qReferencedExpression": {}
+        },
+        "qOtherLabel": {
+          "qv": "Others"
+        },
+        "qTotalLabel": {},
+        "qCalcCond": {},
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "othersLabel": "Others"
+      }
+    ],
+    "qMeasures": [
+      {
+        "qDef": {
+          "qLabel": "Total compute cost - RP",
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "RangeSum(Above( (　{\u003cREPORT_PERIOD_COST_DATE={$(v.Costs_Dynamic_reporting_period)}, COST_DATE={\"\u003c$(=Today())\"}\u003e} [Total Cost - RP]　) , 0, RowNo()))",
+          "qNumFormat": {
+            "qType": "M",
+            "qnDec": 2,
+            "qUseThou": 0,
+            "qFmt": "$#,##0.00;-$#,##0.00",
+            "qDec": ".",
+            "qThou": ","
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "qLabelExpression": "='Total cost'",
+          "autoSort": true,
+          "cId": "BQWacf",
+          "numFormatFromTemplate": true,
+          "series": {
+            "type": "bar",
+            "axis": 0
+          },
+          "color": {
+            "on": true,
+            "mode": "primary",
+            "paletteColor": {
+              "index": -1,
+              "color": "#249edc"
+            }
+          },
+          "modifiers": [
+            {
+              "type": "accumulation",
+              "disabled": false,
+              "accumulationDimension": 0,
+              "crossAllDimensions": false,
+              "showExcludedValues": false,
+              "fullAccumulation": true,
+              "steps": 6,
+              "outputExpression": "RangeSum(Above( (　{\u003cREPORT_PERIOD_COST_DATE={$(v.Costs_Dynamic_reporting_period)}, COST_DATE={\"\u003c$(=Today())\"}\u003e} [Total Cost - RP]　) , 0, RowNo()))",
+              "base": {
+                "qDef": "{\u003cREPORT_PERIOD_COST_DATE={$(v.Costs_Dynamic_reporting_period)}, COST_DATE={\"\u003c$(=Today())\"}\u003e} [Total Cost - RP]\r\n",
+                "qLibraryId": "",
+                "qLabelExpression": "='Total cost'"
+              }
+            }
+          ],
+          "isCustomFormatted": false,
+          "base": {
+            "qDef": "{\u003cREPORT_PERIOD_COST_DATE={$(v.Costs_Dynamic_reporting_period)}, COST_DATE={\"\u003c$(=Today())\"}\u003e} [Total Cost - RP]\r\n",
+            "qLibraryId": "",
+            "qLabelExpression": "='Total cost'"
+          }
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      },
+      {
+        "qDef": {
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "RangeSum(Above( (　{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Costs_comparator1))'}\u003e} ([Total compute cost - Previous period] + [Total storage cost - Previous period])　) , 0, RowNo()))",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 10,
+            "qUseThou": 0
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "qLabelExpression": "=if('$(=$(v.Costs_comparator1))'='0',null(), '$(=$(v.Costs_comparator1))')",
+          "autoSort": true,
+          "cId": "ZWhJfu",
+          "numFormatFromTemplate": true,
+          "series": {
+            "type": "line",
+            "axis": 0
+          },
+          "color": {
+            "on": true,
+            "mode": "primary",
+            "paletteColor": {
+              "index": -1,
+              "color": "#1c345e"
+            }
+          },
+          "modifiers": [
+            {
+              "type": "accumulation",
+              "disabled": false,
+              "accumulationDimension": 0,
+              "crossAllDimensions": false,
+              "showExcludedValues": false,
+              "fullAccumulation": true,
+              "steps": 6,
+              "outputExpression": "RangeSum(Above( (　{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Costs_comparator1))'}\u003e} ([Total compute cost - Previous period] + [Total storage cost - Previous period])　) , 0, RowNo()))",
+              "base": {
+                "qDef": "{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Costs_comparator1))'}\u003e} ([Total compute cost - Previous period] + [Total storage cost - Previous period])",
+                "qLibraryId": "",
+                "qLabelExpression": "=if('$(=$(v.Costs_comparator1))'='0',null(), '$(=$(v.Costs_comparator1))')"
+              }
+            }
+          ],
+          "base": {
+            "qDef": "{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Costs_comparator1))'}\u003e} ([Total compute cost - Previous period] + [Total storage cost - Previous period])",
+            "qLibraryId": "",
+            "qLabelExpression": "=if('$(=$(v.Costs_comparator1))'='0',null(), '$(=$(v.Costs_comparator1))')"
+          }
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      }
+    ],
+    "qInterColumnSortOrder": [
+      0,
+      1,
+      2
+    ],
+    "qSuppressMissing": true,
+    "qInitialDataFetch": [
+      {
+        "qLeft": 0,
+        "qTop": 0,
+        "qWidth": 17,
+        "qHeight": 500
+      }
+    ],
+    "qReductionMode": "N",
+    "qMode": "S",
+    "qPseudoDimPos": -1,
+    "qNoOfLeftDims": -1,
+    "qMaxStackedCells": 5000,
+    "qCalcCond": {},
+    "qTitle": {},
+    "qCalcCondition": {
+      "qCond": {},
+      "qMsg": {}
+    },
+    "qColumnOrder": [],
+    "qExpansionState": [],
+    "qDynamicScript": [],
+    "columnOrder": [],
+    "qLayoutExclude": {
+      "qHyperCubeDef": {
+        "qDimensions": [],
+        "qMeasures": [],
+        "qInterColumnSortOrder": [],
+        "qInitialDataFetch": [],
+        "qReductionMode": "N",
+        "qMode": "S",
+        "qPseudoDimPos": -1,
+        "qNoOfLeftDims": -1,
+        "qMaxStackedCells": 5000,
+        "qCalcCond": {},
+        "qTitle": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qColumnOrder": [],
+        "qExpansionState": [],
+        "qDynamicScript": []
+      }
+    }
+  },
+  "script": "",
+  "refLine": {
+    "refLines": [],
+    "dimRefLines": [
+      {
+        "show": "",
+        "label": "Today",
+        "showLabel": true,
+        "refLineExpr": {
+          "value": {
+            "qValueExpression": {
+              "qExpr": "=$(=Max({\u003cREPORT_PERIOD_COST_DATE={'Today'}\u003e} [$(=$(v.Cost_Dynamic_dateDim))]))"
+            }
+          },
+          "label": {
+            "qStringExpression": {
+              "qExpr": "=$(=Max({\u003cREPORT_PERIOD_COST_DATE={'Today'}\u003e} [$(=$(v.Cost_Dynamic_dateDim))]))"
+            }
+          },
+          "stringValue": ""
+        },
+        "showValue": false,
+        "align": "center",
+        "paletteColor": {
+          "index": -1,
+          "color": "#babbbe"
+        },
+        "style": {
+          "lineThickness": 2,
+          "lineType": "8 4"
+        },
+        "coloredBackground": false,
+        "cId": "CjjZkN"
+      }
+    ],
+    "refLines2": []
+  },
+  "showTitles": true,
+  "title": "",
+  "subtitle": "",
+  "footnote": "",
+  "disableNavMenu": false,
+  "showDetails": true,
+  "showDetailsExpression": false,
+  "barGrouping": {
+    "grouping": "grouped"
+  },
+  "orientation": "vertical",
+  "scrollStartPos": 0,
+  "dataPoint": {
+    "showLabels": false,
+    "showSegmentLabels": false,
+    "showTotalLabels": true,
+    "show": false,
+    "showLineLabels": false,
+    "showBarLabels": false
+  },
+  "color": {
+    "auto": true,
+    "mode": "primary",
+    "formatting": {
+      "numFormatFromTemplate": true
+    },
+    "useBaseColors": "off",
+    "paletteColor": {
+      "index": 6
+    },
+    "useDimColVal": true,
+    "useMeasureGradient": true,
+    "persistent": false,
+    "expressionIsColor": true,
+    "expressionLabel": "",
+    "measureScheme": "sg",
+    "reverseScheme": false,
+    "dimensionScheme": "12",
+    "autoMinMax": true,
+    "measureMin": 0,
+    "measureMax": 10
+  },
+  "legend": {
+    "show": true,
+    "dock": "top",
+    "showTitle": false
+  },
+  "dimensionAxis": {
+    "continuousAuto": false,
+    "show": "labels",
+    "label": "auto",
+    "dock": "near",
+    "axisDisplayMode": "auto",
+    "maxVisibleItems": 10
+  },
+  "preferContinuousAxis": false,
+  "measureAxis": {
+    "min": 0,
+    "max": 10
+  },
+  "tooltip": {
+    "auto": true,
+    "hideBasic": false,
+    "chart": {
+      "style": {
+        "size": "medium"
+      }
+    },
+    "data": {},
+    "title": "",
+    "description": ""
+  },
+  "visualization": "combochart",
+  "version": "1.34.4",
+  "components": [
+    {
+      "key": "general"
+    },
+    {
+      "key": "bar",
+      "style": {
+        "width": 0.69
+      }
+    },
+    {
+      "key": "line",
+      "style": {
+        "dataPointSize": 10,
+        "lineThickness": 3,
+        "lineCurve": "linear"
+      }
+    },
+    {
+      "key": "axis"
+    },
+    {
+      "key": "legend"
+    }
+  ],
+  "showMiniChartForContinuousAxis": true,
+  "nullMode": "gap",
+  "measureAxes": [
+    {
+      "show": "labels",
+      "dock": "near",
+      "spacing": 1,
+      "autoMinMax": true,
+      "minMax": "min",
+      "min": 0,
+      "max": 10,
+      "logarithmic": false
+    },
+    {
+      "show": "all",
+      "dock": "far",
+      "spacing": 1,
+      "autoMinMax": true,
+      "minMax": "min",
+      "min": 0,
+      "max": 10
+    }
+  ],
+  "qLayoutExclude": {
+    "disabled": {
+      "qExtendsId": "",
+      "showDisclaimer": true,
+      "scrollbar": "none",
+      "gridLine": {
+        "auto": true,
+        "spacing": 2
+      },
+      "measureAxis": {
+        "show": "all",
+        "dock": "near",
+        "spacing": 1,
+        "autoMinMax": true,
+        "minMax": "min",
+        "min": 0,
+        "max": 10
+      }
+    },
+    "quarantine": {
+      "conditionalShowHide": {
+        "measures": {
+          "Sctyd": {
+            "qCond": {
+              "qv": ""
+            },
+            "qMsg": {
+              "qv": ""
+            }
+          }
+        },
+        "dimensions": {
+          "ruvXxWb": {
+            "qCond": {
+              "qv": ""
+            },
+            "qMsg": {
+              "qv": ""
+            }
+          }
+        }
+      }
+    }
+  },
+  "masterVersion": 0.96
+}

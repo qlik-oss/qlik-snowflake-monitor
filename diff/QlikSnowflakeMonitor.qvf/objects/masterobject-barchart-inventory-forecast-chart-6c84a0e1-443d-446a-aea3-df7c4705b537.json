@@ -1,0 +1,367 @@
+{
+  "qInfo": {
+    "qId": "6c84a0e1-443d-446a-aea3-df7c4705b537",
+    "qType": "masterobject"
+  },
+  "qMetaDef": {
+    "title": "Inventory Forecast Chart",
+    "description": "Using Line of best fine, forecast the Inventory growth for next 6 months",
+    "tags": []
+  },
+  "qHyperCubeDef": {
+    "qDimensions": [
+      {
+        "qDef": {
+          "qGrouping": "N",
+          "qFieldDefs": [
+            "=$(p.Inventory_Calendar_DatePeriod)"
+          ],
+          "qFieldLabels": [
+            "Year Month"
+          ],
+          "qSortCriterias": [
+            {
+              "qSortByNumeric": 1,
+              "qSortByAscii": 1,
+              "qSortByLoadOrder": 1,
+              "qExpression": {}
+            }
+          ],
+          "qNumberPresentations": [],
+          "qActiveField": 0,
+          "autoSort": true,
+          "cId": "jmTEJ",
+          "othersLabel": "Others"
+        },
+        "qNullSuppression": true,
+        "qOtherTotalSpec": {
+          "qOtherMode": "OTHER_OFF",
+          "qOtherCounted": {
+            "qv": "6"
+          },
+          "qOtherLimit": {
+            "qv": "0"
+          },
+          "qOtherLimitMode": "OTHER_GE_LIMIT",
+          "qSuppressOther": true,
+          "qForceBadValueKeeping": true,
+          "qApplyEvenWhenPossiblyWrongResult": true,
+          "qOtherSortMode": "OTHER_SORT_DESCENDING",
+          "qTotalMode": "TOTAL_OFF",
+          "qReferencedExpression": {}
+        },
+        "qOtherLabel": {
+          "qv": "Others"
+        },
+        "qTotalLabel": {},
+        "qCalcCond": {},
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        }
+      }
+    ],
+    "qMeasures": [
+      {
+        "qDef": {
+          "qLabel": "6 Month Forecast",
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "RangeSum(Above( (　min({\u003c$(p.Inventory_Report_period)={'Forecast 6 months'}\u003e} distinct num($(p.Inventory_Calendar_DatePeriod))) * $(=$(v.M_T)) + $(=$(v.C_T))　) , 0, RowNo()))",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 10,
+            "qUseThou": 0
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "autoSort": true,
+          "cId": "HpvxjEX",
+          "numFormatFromTemplate": true,
+          "modifiers": [
+            {
+              "type": "accumulation",
+              "disabled": false,
+              "accumulationDimension": 0,
+              "crossAllDimensions": false,
+              "showExcludedValues": false,
+              "fullAccumulation": true,
+              "steps": 6,
+              "outputExpression": "RangeSum(Above( (　min({\u003c$(p.Inventory_Report_period)={'Forecast 6 months'}\u003e} distinct num($(p.Inventory_Calendar_DatePeriod))) * $(=$(v.M_T)) + $(=$(v.C_T))　) , 0, RowNo()))",
+              "base": {
+                "qDef": "=min({\u003c$(p.Inventory_Report_period)={'Forecast 6 months'}\u003e} distinct num($(p.Inventory_Calendar_DatePeriod))) * $(=$(v.M_T)) + $(=$(v.C_T))\r\n\n\n",
+                "qLibraryId": "",
+                "qLabel": "6 Month Forecast"
+              }
+            }
+          ],
+          "base": {
+            "qDef": "=min({\u003c$(p.Inventory_Report_period)={'Forecast 6 months'}\u003e} distinct num($(p.Inventory_Calendar_DatePeriod))) * $(=$(v.M_T)) + $(=$(v.C_T))\r\n\n\n",
+            "qLibraryId": "",
+            "qLabel": "6 Month Forecast"
+          }
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [
+          {
+            "qExpression": "If(min([$(=left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1) \u0026 '_CREATED_DATE')]) \u003e Today(),'#CAE7F6', '$(v.Colour_SnowflakeBlue)')",
+            "qAttribute": true,
+            "id": "colorByExpression"
+          }
+        ],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      },
+      {
+        "qDef": {
+          "qLabel": "Actuals",
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "RangeSum(Above(If(Count([$(=Replace(GetObjectField(0),']',']]'))]) \u003e 0,  (　Count({\u003c$(p.Inventory_NotDeleted)={0}\u003e} DISTINCT $(p.Inventory_ID))　)  + Sum({1\u003c[$(=Replace(GetObjectField(0),']',']]'))]={\"=Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003e='$(=Replace(Replace(MinString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))' and Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003c='$(=Replace(Replace(MaxString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))'\"}\u003e}0), 0), 0, RowNo()))",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 10,
+            "qUseThou": 0
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "autoSort": true,
+          "cId": "aZUjDDa",
+          "numFormatFromTemplate": true,
+          "modifiers": [
+            {
+              "type": "accumulation",
+              "disabled": false,
+              "accumulationDimension": 0,
+              "crossAllDimensions": false,
+              "showExcludedValues": true,
+              "fullAccumulation": true,
+              "steps": 6,
+              "outputExpression": "RangeSum(Above(If(Count([$(=Replace(GetObjectField(0),']',']]'))]) \u003e 0,  (　Count({\u003c$(p.Inventory_NotDeleted)={0}\u003e} DISTINCT $(p.Inventory_ID))　)  + Sum({1\u003c[$(=Replace(GetObjectField(0),']',']]'))]={\"=Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003e='$(=Replace(Replace(MinString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))' and Only({1}[$(=Replace(GetObjectField(0),']',']]'))])\u003c='$(=Replace(Replace(MaxString([$(=Replace(GetObjectField(0),']',']]'))]),'''',''''''),'$','$''\u0026'''))'\"}\u003e}0), 0), 0, RowNo()))",
+              "base": {
+                "qDef": "Count({\u003c$(p.Inventory_NotDeleted)={0}\u003e} DISTINCT $(p.Inventory_ID))",
+                "qLibraryId": "",
+                "qLabel": "Actuals"
+              }
+            }
+          ],
+          "base": {
+            "qDef": "Count({\u003c$(p.Inventory_NotDeleted)={0}\u003e} DISTINCT $(p.Inventory_ID))",
+            "qLibraryId": "",
+            "qLabel": "Actuals"
+          }
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      }
+    ],
+    "qInterColumnSortOrder": [
+      0,
+      1,
+      2
+    ],
+    "qSuppressMissing": true,
+    "qInitialDataFetch": [
+      {
+        "qLeft": 0,
+        "qTop": 0,
+        "qWidth": 17,
+        "qHeight": 500
+      }
+    ],
+    "qReductionMode": "N",
+    "qMode": "S",
+    "qPseudoDimPos": -1,
+    "qNoOfLeftDims": -1,
+    "qMaxStackedCells": 5000,
+    "qCalcCond": {},
+    "qTitle": {},
+    "qCalcCondition": {
+      "qCond": {},
+      "qMsg": {}
+    },
+    "qColumnOrder": [],
+    "qExpansionState": [],
+    "qDynamicScript": [],
+    "qLayoutExclude": {
+      "qHyperCubeDef": {
+        "qDimensions": [],
+        "qMeasures": [],
+        "qInterColumnSortOrder": [],
+        "qInitialDataFetch": [],
+        "qReductionMode": "N",
+        "qMode": "S",
+        "qPseudoDimPos": -1,
+        "qNoOfLeftDims": -1,
+        "qMaxStackedCells": 5000,
+        "qCalcCond": {},
+        "qTitle": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qColumnOrder": [],
+        "qExpansionState": [],
+        "qDynamicScript": []
+      }
+    }
+  },
+  "script": "",
+  "refLine": {
+    "refLines": [],
+    "dimRefLines": []
+  },
+  "showTitles": true,
+  "title": "",
+  "subtitle": "",
+  "footnote": "",
+  "disableNavMenu": false,
+  "showDetails": true,
+  "showDetailsExpression": false,
+  "showDisclaimer": true,
+  "barGrouping": {
+    "grouping": "stacked"
+  },
+  "orientation": "vertical",
+  "scrollbar": "none",
+  "scrollStartPos": 1,
+  "gridLine": {
+    "auto": true,
+    "spacing": 2
+  },
+  "dataPoint": {
+    "showLabels": false,
+    "showSegmentLabels": false,
+    "showTotalLabels": true
+  },
+  "color": {
+    "auto": false,
+    "mode": "byExpression",
+    "formatting": {
+      "numFormatFromTemplate": true
+    },
+    "useBaseColors": "off",
+    "paletteColor": {
+      "index": -1,
+      "color": "#249EDC"
+    },
+    "useDimColVal": true,
+    "useMeasureGradient": true,
+    "persistent": false,
+    "expressionIsColor": true,
+    "expressionLabel": "",
+    "measureScheme": "sg",
+    "reverseScheme": false,
+    "dimensionScheme": "12",
+    "autoMinMax": true,
+    "measureMin": 0,
+    "measureMax": 10,
+    "altLabel": "Forecast",
+    "byMeasureDef": {
+      "label": "Forecast",
+      "key": "=(sum({\u003c[Report Period]={'Forecast 6 months'}\u003e}[DATABASE_CREATED_DATE]) * $(=$(v.M(DATABASE_ID, [DATABASE_CREATED_DATE])))) + $(=$(v.C(DATABASE_ID, [DATABASE_CREATED_DATE])))",
+      "type": "expression"
+    },
+    "colorExpression": "If(min([$(=left(UPPER('$(v.Inventory_Dropdown)'), len('$(v.Inventory_Dropdown)') - 1) \u0026 '_CREATED_DATE')]) \u003e Today(),'#CAE7F6', '$(v.Colour_SnowflakeBlue)')"
+  },
+  "legend": {
+    "show": true,
+    "dock": "auto",
+    "showTitle": true
+  },
+  "dimensionAxis": {
+    "continuousAuto": true,
+    "show": "labels",
+    "label": "auto",
+    "dock": "near",
+    "axisDisplayMode": "auto",
+    "maxVisibleItems": 10
+  },
+  "preferContinuousAxis": true,
+  "measureAxis": {
+    "show": "labels",
+    "dock": "near",
+    "spacing": 1,
+    "autoMinMax": true,
+    "minMax": "min",
+    "min": 0,
+    "max": 10
+  },
+  "tooltip": {
+    "auto": true,
+    "hideBasic": false,
+    "chart": {
+      "style": {
+        "size": "medium"
+      }
+    },
+    "data": {}
+  },
+  "visualization": "barchart",
+  "version": "1.34.4",
+  "components": [],
+  "showMiniChartForContinuousAxis": true,
+  "appId": "8b917b0b-50d6-432c-a761-990bf7b347e1",
+  "hash": 0.5313239992749996,
+  "masterVersion": 0.96
+}

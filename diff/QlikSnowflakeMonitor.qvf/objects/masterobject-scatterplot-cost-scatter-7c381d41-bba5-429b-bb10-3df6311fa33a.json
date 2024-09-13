@@ -1,0 +1,427 @@
+{
+  "qInfo": {
+    "qId": "7c381d41-bba5-429b-bb10-3df6311fa33a",
+    "qType": "masterobject"
+  },
+  "qMetaDef": {
+    "title": "Cost Scatter",
+    "description": "",
+    "tags": []
+  },
+  "qHyperCubeDef": {
+    "qDimensions": [
+      {
+        "qDef": {
+          "qGrouping": "N",
+          "qFieldDefs": [
+            "=[$(=$(v.Cost_dimension_dropdown))]\t"
+          ],
+          "qFieldLabels": [
+            ""
+          ],
+          "qSortCriterias": [
+            {
+              "qSortByNumeric": 1,
+              "qSortByAscii": 1,
+              "qSortByLoadOrder": 1,
+              "qExpression": {}
+            }
+          ],
+          "qNumberPresentations": [],
+          "qActiveField": 0,
+          "qLabelExpression": "='$(=$(v.Cost_dimension_dropdown))'",
+          "autoSort": true,
+          "cId": "eaTDE",
+          "othersLabel": "Others"
+        },
+        "qNullSuppression": true,
+        "qOtherTotalSpec": {
+          "qOtherMode": "OTHER_OFF",
+          "qOtherCounted": {
+            "qv": "10"
+          },
+          "qOtherLimit": {
+            "qv": "0"
+          },
+          "qOtherLimitMode": "OTHER_GE_LIMIT",
+          "qForceBadValueKeeping": true,
+          "qApplyEvenWhenPossiblyWrongResult": true,
+          "qOtherSortMode": "OTHER_SORT_DESCENDING",
+          "qTotalMode": "TOTAL_OFF",
+          "qReferencedExpression": {}
+        },
+        "qOtherLabel": {
+          "qv": "Others"
+        },
+        "qTotalLabel": {},
+        "qCalcCond": {},
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        }
+      }
+    ],
+    "qMeasures": [
+      {
+        "qDef": {
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Cost_time_selector_previous_period))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS) \r\n\n",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 10,
+            "qUseThou": 0
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "qLabelExpression": "='Cost '\u0026 '$(=$(v.Cost_time_selector_previous_period))' \u0026 '($)'",
+          "autoSort": true,
+          "cId": "UJJZzpZ",
+          "numFormatFromTemplate": true
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      },
+      {
+        "qDef": {
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "(SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Cost_time_selector_previous_period))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS) \r\n- \nSUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Costs_comparator2))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS))\n\t/\n\tSUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Costs_comparator2))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS)",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 10,
+            "qUseThou": 0
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "qLabelExpression": "='Cost last full month vs Previous full month (%)",
+          "autoSort": true,
+          "cId": "PZJsRD",
+          "numFormatFromTemplate": true
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      },
+      {
+        "qDef": {
+          "qLabel": "Total Cost",
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "sum({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Cost_time_selector_previous_period))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS)",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 10,
+            "qUseThou": 0
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "autoSort": true,
+          "cId": "ZyTJtk",
+          "numFormatFromTemplate": true
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      }
+    ],
+    "qInterColumnSortOrder": [
+      3,
+      2,
+      1,
+      0
+    ],
+    "qSuppressMissing": true,
+    "qInitialDataFetch": [],
+    "qReductionMode": "N",
+    "qMode": "S",
+    "qPseudoDimPos": -1,
+    "qNoOfLeftDims": -1,
+    "qMaxStackedCells": 5000,
+    "qCalcCond": {
+      "qv": "{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Costs_comparator2))'}\u003e} [Total cost / credits] \u003e 0"
+    },
+    "qTitle": {},
+    "qCalcCondition": {
+      "qCond": {
+        "qv": "{\u003cREPORT_PERIOD_COST_DATE={'$(=$(v.Costs_comparator2))'}\u003e} [Total cost / credits] \u003e 0"
+      },
+      "qMsg": {
+        "qv": "='There was 0 cost in the ' \u0026 '$(=$(v.Costs_comparator2))' \u0026 ' so this chart cannot display'"
+      }
+    },
+    "qColumnOrder": [],
+    "qExpansionState": [],
+    "qDynamicScript": [],
+    "qLayoutExclude": {
+      "qHyperCubeDef": {
+        "qDimensions": [],
+        "qMeasures": [],
+        "qInterColumnSortOrder": [],
+        "qInitialDataFetch": [],
+        "qReductionMode": "N",
+        "qMode": "S",
+        "qPseudoDimPos": -1,
+        "qNoOfLeftDims": -1,
+        "qMaxStackedCells": 5000,
+        "qCalcCond": {},
+        "qTitle": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qColumnOrder": [],
+        "qExpansionState": [],
+        "qDynamicScript": []
+      }
+    },
+    "customErrorMessage": {
+      "calcCond": ""
+    }
+  },
+  "script": "",
+  "refLine": {
+    "refLinesX": [
+      {
+        "show": true,
+        "label": "Avg cost",
+        "showLabel": true,
+        "refLineExpr": {
+          "value": {
+            "qValueExpression": {
+              "qExpr": "=$(=AVG(\r\n\tAGGR(\n    \tSUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Cost_time_selector_previous_period))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS),\n        [$(=$(v.Cost_dimension_dropdown))])\n    ))\n\n\n"
+            }
+          },
+          "label": {
+            "qStringExpression": {
+              "qExpr": "=$(=AVG(\r\n\tAGGR(\n    \tSUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Cost_time_selector_previous_period))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS),\n        [$(=$(v.Cost_dimension_dropdown))])\n    ))\n\n\n"
+            }
+          }
+        },
+        "showValue": false,
+        "paletteColor": {
+          "index": 13,
+          "color": "#7b7a78"
+        },
+        "style": {
+          "lineThickness": 2,
+          "lineType": "8 4"
+        },
+        "coloredBackground": false,
+        "cId": "gQbua"
+      }
+    ],
+    "refLinesY": [
+      {
+        "show": true,
+        "label": "Avg % change",
+        "showLabel": true,
+        "refLineExpr": {
+          "value": {
+            "qValueExpression": {
+              "qExpr": "=RANGEMAX($(=AVG(\r\n\tAGGR(\n    \t(SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Cost_time_selector_previous_period))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS) \n        - \n        SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Costs_comparator2))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS))\n            /\n            SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Costs_comparator2))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS),\n        [$(=$(v.Cost_dimension_dropdown))])\n    )),0)"
+            }
+          },
+          "label": {
+            "qStringExpression": {
+              "qExpr": "=RANGEMAX($(=AVG(\r\n\tAGGR(\n    \t(SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Cost_time_selector_previous_period))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS) \n        - \n        SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Costs_comparator2))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS))\n            /\n            SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Costs_comparator2))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS),\n        [$(=$(v.Cost_dimension_dropdown))])\n    )),0)"
+            }
+          }
+        },
+        "showValue": false,
+        "paletteColor": {
+          "index": 13,
+          "color": "#7b7a78"
+        },
+        "style": {
+          "lineThickness": 2,
+          "lineType": "8 4"
+        },
+        "coloredBackground": false,
+        "cId": "HFAn"
+      }
+    ]
+  },
+  "trendLines": [],
+  "showTitles": true,
+  "title": "",
+  "subtitle": "",
+  "footnote": "",
+  "disableNavMenu": false,
+  "showDetails": false,
+  "showDetailsExpression": false,
+  "showDisclaimer": true,
+  "components": [],
+  "navigation": true,
+  "dataPoint": {
+    "bubbleSizes": 5,
+    "rangeBubbleSizes": [
+      2,
+      17
+    ],
+    "compressionResolution": 5
+  },
+  "labels": {
+    "mode": 1
+  },
+  "compressionResolution": 5,
+  "maxVisibleBubbles": 2500,
+  "gridLine": {
+    "auto": true,
+    "spacing": 2
+  },
+  "color": {
+    "auto": false,
+    "mode": "primary",
+    "formatting": {
+      "numFormatFromTemplate": true
+    },
+    "useBaseColors": "off",
+    "paletteColor": {
+      "index": -1,
+      "color": "#249edc"
+    },
+    "useDimColVal": true,
+    "useMeasureGradient": true,
+    "persistent": false,
+    "expressionIsColor": true,
+    "expressionLabel": "",
+    "measureScheme": "sg",
+    "reverseScheme": false,
+    "dimensionScheme": "12",
+    "autoMinMax": true,
+    "measureMin": 0,
+    "measureMax": 10
+  },
+  "legend": {
+    "show": true,
+    "dock": "auto",
+    "showTitle": true
+  },
+  "xAxis": {
+    "show": "all",
+    "dock": "near",
+    "spacing": 1,
+    "autoMinMax": true,
+    "minMax": "min",
+    "min": 0,
+    "max": 10
+  },
+  "yAxis": {
+    "show": "all",
+    "dock": "near",
+    "spacing": 1,
+    "autoMinMax": false,
+    "minMax": "max",
+    "min": 0,
+    "max": {
+      "qValueExpression": {
+        "qExpr": "=RANGEMAX($(=AVG(\r\n\tAGGR(\n    \t(SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Cost_time_selector_previous_period))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS) \n        - \n        SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Costs_comparator2))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS))\n            /\n            SUM({\u003cREPORT_PERIOD_TRANSACTION_DATE={'$(=$(v.Costs_comparator2))'}, TRANSACTION_TYPE={'AGGREGATED COST'}, SERVICE_TYPE_CATEGORY=, SERVICE_TYPE=\u003e} TOTAL_COSTS),\n        [$(=$(v.Cost_dimension_dropdown))])\n    ))* 1.2,0)"
+      }
+    }
+  },
+  "tooltip": {
+    "auto": true,
+    "hideBasic": false,
+    "chart": {
+      "style": {
+        "size": "medium"
+      }
+    },
+    "title": "",
+    "description": ""
+  },
+  "visualization": "scatterplot",
+  "version": "3.53.0",
+  "masterVersion": 0.96
+}

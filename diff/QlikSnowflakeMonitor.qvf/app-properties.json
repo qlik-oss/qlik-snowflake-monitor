@@ -1,0 +1,10 @@
+{
+  "qTitle": "Qlik Snowflake Monitor",
+  "qThumbnail": {
+    "qUrl": "/api/v1/apps/<appId>/media/files/snowflake_monitor.png"
+  },
+  "description": "Uncover valuable insights about your Snowflake costs, usage, inventory, security, performance and contract utilization.",
+  "qUsage": "ANALYTICS",
+  "published": false,
+  "hassectionaccess": false
+}

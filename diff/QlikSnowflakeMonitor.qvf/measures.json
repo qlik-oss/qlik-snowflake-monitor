@@ -1,0 +1,209 @@
+[
+  {
+    "qInfo": {
+      "qId": "f50939b4-20a2-41ce-803d-95599a39fa59",
+      "qType": "measure"
+    },
+    "qMeasure": {
+      "qLabel": "Total cost / credits",
+      "qDef": "NUM(Sum(['$(v.Cost_Dollar_ComputeCredit_switch)']),'$(=$(v.Cost_Dollar_ComputeCredit_switch_format))')\r\n\n",
+      "qGrouping": "N",
+      "qExpressions": [],
+      "qActiveExpression": 0,
+      "qLabelExpression": "='Total Cost'",
+      "qNumFormat": {
+        "qType": "U",
+        "qnDec": 2,
+        "qUseThou": 0,
+        "qDec": ".",
+        "qThou": ","
+      },
+      "isCustomFormatted": false,
+      "numFormatFromTemplate": true,
+      "coloring": {}
+    },
+    "qMetaDef": {
+      "title": "Total cost / credits",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "ea04cebf-119c-4ffb-9ef4-13581689c978",
+      "qType": "measure"
+    },
+    "qMeasure": {
+      "qLabel": "Storage cost",
+      "qDef": "sum({\u003cSERVICE_TYPE_CATEGORY={'STORAGE'}\u003e} COST)",
+      "qGrouping": "N",
+      "qExpressions": [],
+      "qActiveExpression": 0,
+      "qLabelExpression": "='Storage cost'",
+      "qNumFormat": {
+        "qType": "M",
+        "qnDec": 2,
+        "qUseThou": 0,
+        "qFmt": "$#,##0.00;-$#,##0.00",
+        "qDec": ".",
+        "qThou": ","
+      },
+      "isCustomFormatted": false,
+      "numFormatFromTemplate": true,
+      "coloring": {}
+    },
+    "qMetaDef": {
+      "title": "Storage cost",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "sYDvms",
+      "qType": "measure"
+    },
+    "qMeasure": {
+      "qLabel": "Compute cost",
+      "qDef": "sum({\u003cSERVICE_TYPE_CATEGORY={'COMPUTE'}\u003e} COST)\r\n",
+      "qGrouping": "N",
+      "qExpressions": [],
+      "qActiveExpression": 0,
+      "qNumFormat": {
+        "qType": "U",
+        "qnDec": 10,
+        "qUseThou": 0
+      },
+      "coloring": {}
+    },
+    "qMetaDef": {
+      "title": "Compute cost",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "mgmHyT",
+      "qType": "measure"
+    },
+    "qMeasure": {
+      "qLabel": "Query Count",
+      "qDef": "NUM(COUNT(DISTINCT QUERY_ID),'#,##0')",
+      "qGrouping": "N",
+      "qExpressions": [],
+      "qActiveExpression": 0,
+      "qNumFormat": {
+        "qType": "U",
+        "qnDec": 10,
+        "qUseThou": 0
+      },
+      "coloring": {}
+    },
+    "qMetaDef": {
+      "title": "Query Count",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "KUSdJm",
+      "qType": "measure"
+    },
+    "qMeasure": {
+      "qLabel": "Unique Schemas",
+      "qDef": "Count(DISTINCT [%KEY_SCHEMA])",
+      "qGrouping": "N",
+      "qExpressions": [],
+      "qActiveExpression": 0,
+      "qNumFormat": {
+        "qType": "U",
+        "qnDec": 10,
+        "qUseThou": 0
+      },
+      "numFormatFromTemplate": true,
+      "coloring": {}
+    },
+    "qMetaDef": {
+      "title": "Unique Schemas",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "FHzbmq",
+      "qType": "measure"
+    },
+    "qMeasure": {
+      "qLabel": "Unique Catelogs (DBs)",
+      "qDef": "Count(DISTINCT DATABASE_ID)",
+      "qGrouping": "N",
+      "qExpressions": [],
+      "qActiveExpression": 0,
+      "qNumFormat": {
+        "qType": "U",
+        "qnDec": 10,
+        "qUseThou": 0
+      },
+      "numFormatFromTemplate": true,
+      "coloring": {}
+    },
+    "qMetaDef": {
+      "title": "Unique Catelogs (DBs)",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "jTNF",
+      "qType": "measure"
+    },
+    "qMeasure": {
+      "qLabel": "Unique Tables",
+      "qDef": "Count(DISTINCT TABLE_ID)",
+      "qGrouping": "N",
+      "qExpressions": [],
+      "qActiveExpression": 0,
+      "qNumFormat": {
+        "qType": "U",
+        "qnDec": 10,
+        "qUseThou": 0
+      },
+      "numFormatFromTemplate": true,
+      "coloring": {}
+    },
+    "qMetaDef": {
+      "title": "Unique Tables",
+      "description": "",
+      "tags": []
+    }
+  },
+  {
+    "qInfo": {
+      "qId": "UUeUP",
+      "qType": "measure"
+    },
+    "qMeasure": {
+      "qLabel": "Unique Columns",
+      "qDef": "Count(DISTINCT COLUMN_ID)",
+      "qGrouping": "N",
+      "qExpressions": [],
+      "qActiveExpression": 0,
+      "qNumFormat": {
+        "qType": "U",
+        "qnDec": 10,
+        "qUseThou": 0
+      },
+      "numFormatFromTemplate": true,
+      "coloring": {}
+    },
+    "qMetaDef": {
+      "title": "Unique Columns",
+      "description": "",
+      "tags": []
+    }
+  }
+]

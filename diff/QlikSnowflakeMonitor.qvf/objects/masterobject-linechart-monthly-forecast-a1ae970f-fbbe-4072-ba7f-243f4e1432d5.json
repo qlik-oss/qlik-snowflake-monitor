@@ -1,0 +1,308 @@
+{
+  "qInfo": {
+    "qId": "a1ae970f-fbbe-4072-ba7f-243f4e1432d5",
+    "qType": "masterobject"
+  },
+  "qMetaDef": {
+    "title": "Monthly forecast",
+    "description": "",
+    "tags": []
+  },
+  "qHyperCubeDef": {
+    "qDimensions": [
+      {
+        "qDef": {
+          "qGrouping": "N",
+          "qFieldDefs": [
+            "=Dual(Month([COST_DATE])\u0026'-'\u0026Year([COST_DATE]),MonthStart([COST_DATE]))"
+          ],
+          "qFieldLabels": [
+            "Month Year"
+          ],
+          "qSortCriterias": [
+            {
+              "qSortByNumeric": 1,
+              "qSortByAscii": 1,
+              "qSortByLoadOrder": 1,
+              "qExpression": {}
+            }
+          ],
+          "qNumberPresentations": [],
+          "qActiveField": 0,
+          "autoSort": true,
+          "cId": "myyGZ",
+          "othersLabel": "Others",
+          "forecast": {
+            "stepSize": "months",
+            "stepSizeMultiplier": 1,
+            "steps": 3
+          }
+        },
+        "qOtherTotalSpec": {
+          "qOtherMode": "OTHER_OFF",
+          "qOtherCounted": {
+            "qv": "10"
+          },
+          "qOtherLimit": {
+            "qv": "0"
+          },
+          "qOtherLimitMode": "OTHER_GE_LIMIT",
+          "qForceBadValueKeeping": true,
+          "qApplyEvenWhenPossiblyWrongResult": true,
+          "qOtherSortMode": "OTHER_SORT_DESCENDING",
+          "qTotalMode": "TOTAL_OFF",
+          "qReferencedExpression": {}
+        },
+        "qOtherLabel": {
+          "qv": "Others"
+        },
+        "qTotalLabel": {},
+        "qCalcCond": {},
+        "qAttributeExpressions": [],
+        "qAttributeDimensions": [],
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        }
+      }
+    ],
+    "qMeasures": [
+      {
+        "qDef": {
+          "qLabel": "Cost",
+          "qTags": [],
+          "qGrouping": "N",
+          "qDef": "Sum({\u003cCOST_DATE={\"\u003c$(=Max({\u003cREPORT_PERIOD_COST_DATE={'Last full month'}\u003e} COST_DATE))\"}, COST={\"\u003e0\"}\u003e} COST)",
+          "qNumFormat": {
+            "qType": "U",
+            "qnDec": 10,
+            "qUseThou": 0
+          },
+          "qAccumulate": 0,
+          "qActiveExpression": 0,
+          "qExpressions": [],
+          "autoSort": true,
+          "cId": "PXmYxq",
+          "numFormatFromTemplate": true,
+          "styling": [
+            {
+              "style": {
+                "dataPointSize": 6,
+                "lineThickness": 4,
+                "lineType": "solid",
+                "lineCurve": "monotone"
+              },
+              "cId": "SPCbSHm"
+            }
+          ],
+          "forecast": {
+            "enabled": true,
+            "method": "ssa_forecast",
+            "paletteColor": {
+              "index": -1,
+              "color": "#bee2f5"
+            },
+            "lineThickness": 4,
+            "lineType": "dashed",
+            "lineCurve": "monotone",
+            "showConfidence": false,
+            "confidence": 0.75
+          }
+        },
+        "qSortBy": {
+          "qSortByNumeric": -1,
+          "qSortByLoadOrder": 1,
+          "qExpression": {}
+        },
+        "qAttributeExpressions": [
+          {
+            "qAttribute": true,
+            "id": "forecast"
+          },
+          {
+            "qAttribute": true,
+            "id": "forecast_lower"
+          },
+          {
+            "qAttribute": true,
+            "id": "forecast_upper"
+          }
+        ],
+        "qAttributeDimensions": [],
+        "qCalcCond": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qTrendLines": [],
+        "qMiniChartDef": {
+          "qSortBy": {
+            "qExpression": {}
+          },
+          "qOtherTotalSpec": {
+            "qOtherMode": "OTHER_OFF",
+            "qOtherCounted": {},
+            "qOtherLimit": {},
+            "qOtherLimitMode": "OTHER_GT_LIMIT",
+            "qForceBadValueKeeping": true,
+            "qApplyEvenWhenPossiblyWrongResult": true,
+            "qOtherSortMode": "OTHER_SORT_DESCENDING",
+            "qTotalMode": "TOTAL_OFF",
+            "qReferencedExpression": {}
+          },
+          "qMaxNumberPoints": -1,
+          "qAttributeExpressions": []
+        }
+      }
+    ],
+    "qInterColumnSortOrder": [
+      0,
+      1
+    ],
+    "qSuppressMissing": true,
+    "qInitialDataFetch": [
+      {
+        "qLeft": 0,
+        "qTop": 0,
+        "qWidth": 17,
+        "qHeight": 500
+      }
+    ],
+    "qReductionMode": "N",
+    "qMode": "S",
+    "qPseudoDimPos": -1,
+    "qNoOfLeftDims": -1,
+    "qAlwaysFullyExpanded": true,
+    "qMaxStackedCells": 5000,
+    "qCalcCond": {},
+    "qTitle": {},
+    "qCalcCondition": {
+      "qCond": {},
+      "qMsg": {}
+    },
+    "qColumnOrder": [],
+    "qExpansionState": [],
+    "qDynamicScript": [
+      "add load\n        \"Time Stamp\" as #hc1.dimension.1,\n        Forecast as #hc1.measure.1.attribute.1,\n        \"Lower Uncertainty\" as #hc1.measure.1.attribute.2,\n        \"Upper Uncertainty\" as #hc1.measure.1.attribute.3\n        Extension qlikml.ScriptEval('\n          {\n            \"RequestType\": \"ssa_forecast\",\n            \"ReturnType\": \"forecast_and_last\",\n            \"ConfidenceLevel\": 0.75,\n            \"Horizon\": \"3 months\",\n            \"TimeStep\": \"1 months\",\n            \"InterpolateNanValues\": \"true\",\n            \"ShouldCache\": \"false\"\n          }', HC1{#hc1.dimension.1, #hc1.measure.1});"
+    ],
+    "qLayoutExclude": {
+      "qHyperCubeDef": {
+        "qDimensions": [],
+        "qMeasures": [],
+        "qInterColumnSortOrder": [],
+        "qInitialDataFetch": [],
+        "qReductionMode": "N",
+        "qMode": "S",
+        "qPseudoDimPos": -1,
+        "qNoOfLeftDims": -1,
+        "qMaxStackedCells": 5000,
+        "qCalcCond": {},
+        "qTitle": {},
+        "qCalcCondition": {
+          "qCond": {},
+          "qMsg": {}
+        },
+        "qColumnOrder": [],
+        "qExpansionState": [],
+        "qDynamicScript": []
+      }
+    }
+  },
+  "script": "",
+  "refLine": {
+    "refLines": [],
+    "dimRefLines": []
+  },
+  "showTitles": true,
+  "title": "",
+  "subtitle": "",
+  "footnote": "",
+  "disableNavMenu": false,
+  "showDetails": true,
+  "showDetailsExpression": false,
+  "showDisclaimer": true,
+  "lineType": "area",
+  "stackedArea": false,
+  "separateStacking": true,
+  "orientation": "horizontal",
+  "scrollbar": "none",
+  "scrollStartPos": 0,
+  "nullMode": "gap",
+  "dataPoint": {
+    "show": false,
+    "showLabels": false
+  },
+  "maxNumPoints": 2000,
+  "maxNumLines": 12,
+  "gridLine": {
+    "auto": false,
+    "spacing": 1
+  },
+  "color": {
+    "auto": false,
+    "mode": "primary",
+    "formatting": {
+      "numFormatFromTemplate": true
+    },
+    "useBaseColors": "off",
+    "paletteColor": {
+      "index": -1,
+      "color": "#249edc"
+    },
+    "useDimColVal": true,
+    "useMeasureGradient": true,
+    "persistent": false,
+    "expressionIsColor": true,
+    "expressionLabel": "",
+    "measureScheme": "sg",
+    "reverseScheme": false,
+    "dimensionScheme": "12",
+    "autoMinMax": true,
+    "measureMin": 0,
+    "measureMax": 10
+  },
+  "legend": {
+    "show": true,
+    "dock": "auto",
+    "showTitle": true
+  },
+  "dimensionAxis": {
+    "continuousAuto": false,
+    "show": "labels",
+    "label": "auto",
+    "dock": "near",
+    "axisDisplayMode": "auto",
+    "maxVisibleItems": 10
+  },
+  "preferContinuousAxis": true,
+  "measureAxis": {
+    "show": "labels",
+    "dock": "near",
+    "spacing": 1,
+    "autoMinMax": false,
+    "minMax": "min",
+    "min": 0,
+    "max": 10,
+    "logarithmic": false
+  },
+  "tooltip": {
+    "auto": true,
+    "hideBasic": false,
+    "chart": {
+      "style": {
+        "size": "medium"
+      }
+    },
+    "title": "",
+    "description": ""
+  },
+  "visualization": "linechart",
+  "version": "1.30.8",
+  "components": [
+    {
+      "key": "general"
+    }
+  ],
+  "showMiniChartForContinuousAxis": true,
+  "masterVersion": 0.96
+}

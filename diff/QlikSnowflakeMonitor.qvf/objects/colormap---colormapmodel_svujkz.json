@@ -1,0 +1,150 @@
+{
+  "qInfo": {
+    "qId": "ColorMapModel_SvUjkZ",
+    "qType": "ColorMap"
+  },
+  "qMetaDef": {},
+  "colorMap": {
+    "colors": [
+      {
+        "value": "ACCOUNT",
+        "baseColor": {
+          "color": "#249edc",
+          "index": -1
+        }
+      },
+      {
+        "value": "DATABASE",
+        "baseColor": {
+          "color": "#1c345e",
+          "index": -1
+        }
+      },
+      {
+        "value": "DATABASE_ROLE",
+        "baseColor": {
+          "color": "#bee2fe",
+          "index": -1
+        }
+      },
+      {
+        "value": "FILE FORMAT",
+        "baseColor": {
+          "color": "#d0d5de",
+          "index": -1
+        }
+      },
+      {
+        "value": "INSTANCE_ROLE",
+        "baseColor": {
+          "color": "#545352",
+          "index": 14
+        }
+      },
+      {
+        "value": "INTEGRATION",
+        "baseColor": {
+          "color": "#74b5e5",
+          "index": -1
+        }
+      },
+      {
+        "value": "NETWORK POLICY",
+        "baseColor": {
+          "color": "#556184",
+          "index": -1
+        }
+      },
+      {
+        "value": "PROCEDURE",
+        "baseColor": {
+          "color": "#d4e6f7",
+          "index": -1
+        }
+      },
+      {
+        "value": "RESOURCE MONITOR",
+        "baseColor": {
+          "color": "#c4c7d5",
+          "index": -1
+        }
+      },
+      {
+        "value": "ROLE",
+        "baseColor": {
+          "color": "#249edc",
+          "index": -1
+        }
+      },
+      {
+        "value": "SCHEMA",
+        "baseColor": {
+          "color": "#1c345e",
+          "index": -1
+        }
+      },
+      {
+        "value": "SEQUENCE",
+        "baseColor": {
+          "color": "#bee2fe",
+          "index": -1
+        }
+      },
+      {
+        "value": "STAGE",
+        "baseColor": {
+          "color": "#d0d5de",
+          "index": -1
+        }
+      },
+      {
+        "value": "STREAM",
+        "baseColor": {
+          "color": "#545352",
+          "index": 14
+        }
+      },
+      {
+        "value": "TABLE",
+        "baseColor": {
+          "color": "#74b5e5",
+          "index": -1
+        }
+      },
+      {
+        "value": "TASK",
+        "baseColor": {
+          "color": "#556184",
+          "index": -1
+        }
+      },
+      {
+        "value": "USER",
+        "baseColor": {
+          "color": "#d4e6f7",
+          "index": -1
+        }
+      },
+      {
+        "value": "VIEW",
+        "baseColor": {
+          "color": "#c4c7d5",
+          "index": -1
+        }
+      },
+      {
+        "value": "WAREHOUSE",
+        "baseColor": {
+          "color": "#249edc",
+          "index": -1
+        }
+      }
+    ],
+    "nul": null,
+    "oth": null,
+    "pal": null,
+    "single": null,
+    "usePal": true,
+    "autoFill": true
+  }
+}
