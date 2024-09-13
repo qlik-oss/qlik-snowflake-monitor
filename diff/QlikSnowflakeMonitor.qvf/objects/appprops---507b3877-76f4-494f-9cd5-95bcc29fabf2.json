@@ -15,7 +15,7 @@
   "sheetTitleColor": "#ffffff",
   "sheetLogoThumbnail": {
     "qStaticContentUrlDef": {
-      "qUrl": "/api/v1/apps/89ce5491-b20b-4a68-81e5-c4edc655d4a3/media/files/snowflake_logo_white small .png"
+      "qUrl": "/api/v1/apps/<appId>/media/files/snowflake_logo_white small .png"
     }
   },
   "sheetLogoPosition": "",
